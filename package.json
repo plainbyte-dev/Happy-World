@@ -1,0 +1,16 @@
+{
+  "name": "tours-travel",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "preinstall": "npx only-allow pnpm"
+  },
+  "devDependencies": {
+    "turbo": "latest",
+    "only-allow": "^1.2.1"
+  }
+}

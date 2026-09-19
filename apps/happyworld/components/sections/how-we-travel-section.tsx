@@ -1,6 +1,7 @@
-import { content } from '@/data/content';
+import { useSiteContent } from '@/lib/site-content-context';
 
 function HowWeTravelSection() {
+  const content = useSiteContent();
   return (
     <section className="bg-[#dfe2ee] px-5 py-24 sm:px-8 sm:py-32 lg:px-12">
       <div className="mx-auto grid max-w-[1240px] gap-14 lg:grid-cols-[.8fr_1.2fr] lg:gap-24">

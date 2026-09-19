@@ -5,6 +5,7 @@ import { connectDB } from './config/db';
 import { errorHandler } from './middleware/errorHandler';
 import packageRoutes from './routes/package.routes';
 import publicRoutes from './routes/public.routes';
+import siteContentRoutes from './routes/siteContent.routes';
 import uploadRoutes from './routes/upload.routes';
 import { ApiError } from './utils/ApiError';
 
@@ -24,6 +25,7 @@ app.get('/', (_req: Request, res: Response) => {
 });
 
 app.use('/api/admin/packages', packageRoutes);
+app.use('/api/admin/site-content', siteContentRoutes);
 app.use('/api/admin', uploadRoutes);
 app.use('/api', publicRoutes);
 

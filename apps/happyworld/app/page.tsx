@@ -11,12 +11,13 @@ import PackageGridSection from '@/components/sections/package-grid-section';
 import HowWeTravelSection from '@/components/sections/how-we-travel-section';
 import EnquirySection from '@/components/sections/enquiry-section';
 import SiteFooter from '@/components/sections/site-footer';
-import { content } from '@/data/content';
+import { useSiteContent } from '@/lib/site-content-context';
 import { enquirySchema, type EnquiryValues } from '@/lib/enquiry-schema';
 import { buildEnquiryWhatsappUrl } from '@/lib/whatsapp';
 import { submitContactEnquiry } from '@/lib/contact';
 
 function Home() {
+  const content = useSiteContent();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [slide, setSlide] = useState(0);
@@ -38,7 +39,7 @@ function Home() {
     if (paused) return;
     const timer = window.setInterval(() => setSlide((current) => (current + 1) % content.heroSlides.length), 2000);
     return () => window.clearInterval(timer);
-  }, [paused]);
+  }, [paused, content.heroSlides.length]);
 
   const scrollToEnquiry = (interest?: string) => {
     if (interest) form.setValue('interest', interest);

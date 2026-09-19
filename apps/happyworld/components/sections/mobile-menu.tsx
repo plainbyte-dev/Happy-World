@@ -1,5 +1,5 @@
 import { ArrowDownRight, ArrowRight, MapPin } from 'lucide-react';
-import { content } from '@/data/content';
+import { useSiteContent } from '@/lib/site-content-context';
 
 type MobileMenuProps = {
   open: boolean;
@@ -8,6 +8,7 @@ type MobileMenuProps = {
 };
 
 function MobileMenu({ open, onNavigate, onEnquire }: MobileMenuProps) {
+  const content = useSiteContent();
   return (
     <div className={`mobile-menu ${open ? 'mobile-menu-open' : ''}`} aria-hidden={!open}>
       <div className="mobile-menu-inner">

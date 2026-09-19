@@ -3,16 +3,18 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import AppImage from '@/components/ui/AppImage';
 import SiteChrome from '@/components/site-chrome';
-import { content } from '@/data/content';
+import { getSiteContent } from '@/lib/site-content';
 import { getLivePackagesByCategory } from '@/lib/packages';
 
 export async function generateStaticParams() {
-  return content.tripsMenu.map((category) => ({ category: category.key }));
+  const { tripsMenu } = await getSiteContent();
+  return tripsMenu.map((category) => ({ category: category.key }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ category: string }> }) {
   const { category: categoryKey } = await params;
-  const category = content.tripsMenu.find((c) => c.key === categoryKey);
+  const { tripsMenu } = await getSiteContent();
+  const category = tripsMenu.find((c) => c.key === categoryKey);
   if (!category) return {};
   return {
     title: `${category.label} — Nepal Travel Packages`,
@@ -23,7 +25,8 @@ export async function generateMetadata({ params }: { params: Promise<{ category:
 
 async function TourTypePage({ params }: { params: Promise<{ category: string }> }) {
   const { category: categoryKey } = await params;
-  const category = content.tripsMenu.find((c) => c.key === categoryKey);
+  const { tripsMenu } = await getSiteContent();
+  const category = tripsMenu.find((c) => c.key === categoryKey);
   if (!category) notFound();
 
   const packages = await getLivePackagesByCategory(category.key);

@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { content } from '@/data/content';
+import { useSiteContent } from '@/lib/site-content-context';
 
 function JourneysSection() {
+  const content = useSiteContent();
   return (
     <section id="journeys" className="journey-section px-5 pb-28 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-[1440px]">

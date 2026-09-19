@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import AppImage from '@/components/ui/AppImage';
 import SiteChrome from '@/components/site-chrome';
-import { content } from '@/data/content';
+import { getSiteContent } from '@/lib/site-content';
 
 export const metadata = {
   title: 'About Us',
@@ -10,8 +10,8 @@ export const metadata = {
   alternates: { canonical: '/about' },
 };
 
-function AboutPage() {
-  const { about } = content;
+async function AboutPage() {
+  const { about } = await getSiteContent();
 
   return (
     <SiteChrome solidNav>

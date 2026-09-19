@@ -1,4 +1,4 @@
-import { content } from '@/data/content';
+import { useSiteContent } from '@/lib/site-content-context';
 
 type HeroSectionProps = {
   slide: number;
@@ -8,6 +8,7 @@ type HeroSectionProps = {
 };
 
 function HeroSection({ slide, onSelectSlide, onMouseEnter, onMouseLeave }: HeroSectionProps) {
+  const content = useSiteContent();
   const current = content.heroSlides[slide];
 
   return (

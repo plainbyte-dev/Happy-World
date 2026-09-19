@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import AppImage from '@/components/ui/AppImage';
 import SiteChrome from '@/components/site-chrome';
-import { content } from '@/data/content';
+import { getSiteContent } from '@/lib/site-content';
 
 export const metadata = {
   title: 'Nepal Travel Packages & Tour Types',
@@ -10,7 +10,8 @@ export const metadata = {
   alternates: { canonical: '/tour-types' },
 };
 
-function TourTypesPage() {
+async function TourTypesPage() {
+  const { tripsMenu } = await getSiteContent();
   return (
     <SiteChrome solidNav>
     <main className="site-noise overflow-hidden bg-white text-[#1a2650]">
@@ -29,7 +30,7 @@ function TourTypesPage() {
 
       <section className="px-5 sm:px-8 lg:px-12 pb-28">
         <div className="max-w-[1440px] mx-auto grid grid-cols-1 sm:grid-cols-3 gap-5">
-          {content.tripsMenu.map((category) => (
+          {tripsMenu.map((category) => (
             <Link
               key={category.key}
               href={category.href}

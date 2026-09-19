@@ -1,10 +1,12 @@
 import type { MetadataRoute } from "next";
-import { content } from "@/data/content";
+import { getSiteContent } from "@/lib/site-content";
 import { getAllPackageSlugs } from "@/lib/packages";
 
 const SITE_URL = "https://www.happyworldtt.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const { tripsMenu } = await getSiteContent();
+
   const staticRoutes: MetadataRoute.Sitemap = ["", "/tour-types", "/contact"].map((route) => ({
     url: `${SITE_URL}${route}`,
     lastModified: new Date(),
@@ -12,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route === "" ? 1 : 0.8,
   }));
 
-  const categoryRoutes: MetadataRoute.Sitemap = content.tripsMenu.map((category) => ({
+  const categoryRoutes: MetadataRoute.Sitemap = tripsMenu.map((category) => ({
     url: `${SITE_URL}/tour-types/${category.key}`,
     lastModified: new Date(),
     changeFrequency: "weekly",

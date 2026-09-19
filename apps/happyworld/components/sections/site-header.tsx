@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { ArrowRight, Menu, X } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import BrandMark from '@/components/brand-mark';
-import { content } from '@/data/content';
+import { useSiteContent } from '@/lib/site-content-context';
 import { slugify } from '@/lib/packages';
 
 type SiteHeaderProps = {
@@ -25,6 +25,7 @@ type ApiPackageSummary = {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://tours-travels-admin.onrender.com';
 
 function SiteHeader({ scrolled, menuOpen, onToggleMenu, onEnquire, solid }: SiteHeaderProps) {
+  const content = useSiteContent();
   const pathname = usePathname();
   const isNavItemActive = (href: string) => {
     const trimmedHref = href.trim();

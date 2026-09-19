@@ -1,7 +1,8 @@
 import { ArrowRight } from 'lucide-react';
-import { content } from '@/data/content';
+import { useSiteContent } from '@/lib/site-content-context';
 
 function IntroductionSection() {
+  const content = useSiteContent();
   return (
     <section id="way" className="intro-section px-5 py-24 sm:px-8 sm:py-32 lg:px-12">
       <div className="mx-auto grid max-w-[1240px] gap-12 lg:grid-cols-[.7fr_1.3fr] lg:gap-24">

@@ -8,45 +8,50 @@ import { Mail, MapPin, Phone } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import SiteChrome from '@/components/site-chrome';
 import EnquirySection from '@/components/sections/enquiry-section';
-import { content } from '@/data/content';
+import { useSiteContent } from '@/lib/site-content-context';
 import { enquirySchema, type EnquiryValues } from '@/lib/enquiry-schema';
 import { buildEnquiryWhatsappUrl } from '@/lib/whatsapp';
 import { submitContactEnquiry } from '@/lib/contact';
+import type { SiteContent } from '@/lib/site-content';
 
-const contactMethods = [
-  {
-    icon: Mail,
-    label: 'Email',
-    value: content.footer.email,
-    note: 'We reply within two working days.',
-    href: `mailto:${content.footer.email}`,
-  },
-  {
-    icon: Phone,
-    label: 'Call',
-    value: content.footer.phone,
-    note: 'Kathmandu office, GMT+5:45.',
-    href: `tel:${content.footer.phone.replace(/\s+/g, '')}`,
-  },
-  {
-    icon: FaWhatsapp,
-    label: 'WhatsApp',
-    value: 'Message us directly',
-    note: 'Fastest way to reach the team.',
-    href: `https://wa.me/${content.footer.whatsapp}?text=${encodeURIComponent("Hi! I'd like to know more about your Nepal trips.")}`,
-    external: true,
-  },
-  {
-    icon: MapPin,
-    label: 'Visit',
-    value: 'Kathmandu, Nepal',
-    note: 'By appointment — just ask.',
-    href: 'https://www.google.com/maps/search/?api=1&query=Kathmandu%2C+Nepal',
-    external: true,
-  },
-];
+function buildContactMethods(content: SiteContent) {
+  return [
+    {
+      icon: Mail,
+      label: 'Email',
+      value: content.footer.email,
+      note: 'We reply within two working days.',
+      href: `mailto:${content.footer.email}`,
+    },
+    {
+      icon: Phone,
+      label: 'Call',
+      value: content.footer.phone,
+      note: 'Kathmandu office, GMT+5:45.',
+      href: `tel:${content.footer.phone.replace(/\s+/g, '')}`,
+    },
+    {
+      icon: FaWhatsapp,
+      label: 'WhatsApp',
+      value: 'Message us directly',
+      note: 'Fastest way to reach the team.',
+      href: `https://wa.me/${content.footer.whatsapp}?text=${encodeURIComponent("Hi! I'd like to know more about your Nepal trips.")}`,
+      external: true,
+    },
+    {
+      icon: MapPin,
+      label: 'Visit',
+      value: 'Kathmandu, Nepal',
+      note: 'By appointment — just ask.',
+      href: 'https://www.google.com/maps/search/?api=1&query=Kathmandu%2C+Nepal',
+      external: true,
+    },
+  ];
+}
 
 function ContactPageClient() {
+  const content = useSiteContent();
+  const contactMethods = buildContactMethods(content);
   const searchParams = useSearchParams();
   const prefillMessage = searchParams.get('message') ?? '';
   const [submitted, setSubmitted] = useState(false);

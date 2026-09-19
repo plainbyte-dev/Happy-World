@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { montserrat } from "./fonts";
 import PageTransitionOverlay from "@/components/page-transition-overlay";
+import { SiteContentProvider } from "@/lib/site-content-context";
+import { getSiteContent } from "@/lib/site-content";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -110,7 +112,9 @@ const structuredData = {
   priceRange: "$$",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const siteContent = await getSiteContent();
+
   return (
     <html
       lang="en"
@@ -123,8 +127,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <PageTransitionOverlay />
-        {children}
+        <SiteContentProvider value={siteContent}>
+          <PageTransitionOverlay />
+          {children}
+        </SiteContentProvider>
       </body>
     </html>
   );

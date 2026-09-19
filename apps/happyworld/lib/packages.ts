@@ -1,4 +1,4 @@
-import { content } from '@/data/content';
+import { getSiteContent, type SiteContent } from './site-content';
 
 export type ItineraryDay = {
   day: number;
@@ -105,9 +105,9 @@ function hashString(value: string) {
   return hash;
 }
 
-function flattenPackages(): FlatPackage[] {
+function flattenPackages(tripsMenu: SiteContent['tripsMenu']): FlatPackage[] {
   const flat: FlatPackage[] = [];
-  content.tripsMenu.forEach((category) => {
+  tripsMenu.forEach((category) => {
     category.destinations.forEach((destination) => {
       destination.packages.forEach((pkg) => {
         flat.push({
@@ -529,10 +529,10 @@ function cleanItineraryDescription(raw: string): string {
     .trim();
 }
 
-function apiPackageToFlat(pkg: ApiPackage): FlatPackage {
+function apiPackageToFlat(pkg: ApiPackage, tripsMenu: SiteContent['tripsMenu']): FlatPackage {
   const destinationLabel = formatList(pkg.destinations);
   const categoryKey = resolveApiCategory(pkg.category);
-  const categoryLabel = content.tripsMenu.find((category) => category.key === categoryKey)?.label ?? 'Nepal Tours';
+  const categoryLabel = tripsMenu.find((category) => category.key === categoryKey)?.label ?? 'Nepal Tours';
   return {
     name: pkg.title.trim(),
     description: `A ${pkg.itinerary.length}-day journey through ${destinationLabel}, from arrival to departure.`,
@@ -543,8 +543,8 @@ function apiPackageToFlat(pkg: ApiPackage): FlatPackage {
   };
 }
 
-function generateDetailFromApi(pkg: ApiPackage): PackageDetail {
-  const flat = apiPackageToFlat(pkg);
+function generateDetailFromApi(pkg: ApiPackage, tripsMenu: SiteContent['tripsMenu']): PackageDetail {
+  const flat = apiPackageToFlat(pkg, tripsMenu);
   const days = pkg.itinerary.length;
   const { label, peak, base } = maxAltitudeForCategory(flat.categoryKey, days);
   const { includes, excludes } = costForCategory(flat.categoryKey);
@@ -597,7 +597,10 @@ function generateDetailFromApi(pkg: ApiPackage): PackageDetail {
 
 async function fetchApiPackages(): Promise<PackageDetail[]> {
   try {
-    const res = await fetch(`${API_BASE}/api/packages`, { next: { revalidate: 300 } });
+    const [res, siteContent] = await Promise.all([
+      fetch(`${API_BASE}/api/packages`, { next: { revalidate: 300 } }),
+      getSiteContent(),
+    ]);
     if (!res.ok) return [];
     const json = (await res.json()) as { success: boolean; data: ApiPackage[] };
     if (!json.success || !Array.isArray(json.data)) return [];
@@ -609,7 +612,7 @@ async function fetchApiPackages(): Promise<PackageDetail[]> {
         return detail ? { ...pkg, bestTimeToVisit: detail.bestTimeToVisit, category: detail.category } : pkg;
       }),
     );
-    return enriched.map(generateDetailFromApi);
+    return enriched.map((pkg) => generateDetailFromApi(pkg, siteContent.tripsMenu));
   } catch {
     return [];
   }
@@ -703,8 +706,8 @@ const overrides: Record<string, Partial<PackageDetail>> = {
   },
 };
 
-function localDetails(): PackageDetail[] {
-  return flattenPackages().map((pkg) => {
+function localDetails(tripsMenu: SiteContent['tripsMenu']): PackageDetail[] {
+  return flattenPackages(tripsMenu).map((pkg) => {
     const base = generateDetail(pkg);
     const override = overrides[base.slug];
     if (!override) return base;
@@ -719,8 +722,8 @@ let cache: Promise<PackageDetail[]> | null = null;
 
 async function allDetails(): Promise<PackageDetail[]> {
   if (!cache) {
-    cache = fetchApiPackages().then((apiDetails) => {
-      const local = localDetails();
+    cache = Promise.all([fetchApiPackages(), getSiteContent()]).then(([apiDetails, siteContent]) => {
+      const local = localDetails(siteContent.tripsMenu);
       const seenSlugs = new Set(local.map((detail) => detail.slug));
       const uniqueApiDetails = apiDetails.filter((detail) => {
         if (seenSlugs.has(detail.slug)) return false;

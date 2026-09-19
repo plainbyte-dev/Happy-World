@@ -3,9 +3,10 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { FaFacebook, FaInstagram } from 'react-icons/fa';
 import BrandMark from '@/components/brand-mark';
-import { content } from '@/data/content';
+import { useSiteContent } from '@/lib/site-content-context';
 
 function SiteFooter() {
+  const content = useSiteContent();
   const [tripsOpen, setTripsOpen] = useState(false);
 
   return (

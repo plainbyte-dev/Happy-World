@@ -32,12 +32,20 @@ const contentIcon = (
   </svg>
 );
 
+const pinIcon = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className="h-5 w-5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11Z" />
+    <circle cx="12" cy="10" r="2.5" />
+  </svg>
+);
+
 const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: 'Packages',
     items: [
       { href: '/admin/packages', label: 'Packages', exact: true, icon: packageIcon },
       { href: '/admin/packages/new', label: 'New package', icon: plusIcon },
+      { href: '/admin/destinations', label: 'Destinations', icon: pinIcon },
     ],
   },
   {

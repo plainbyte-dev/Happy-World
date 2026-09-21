@@ -293,6 +293,9 @@
 @media (min-width: 768px) {
   .package-grid { grid-template-columns: repeat(3, 1fr); }
 }
+.package-grid-nav-button { display: grid; place-items: center; height: 38px; width: 38px; border: 1px solid #3a4d78; border-radius: 50%; color: #cdd3ec; transition: border-color .25s ease, background .25s ease, color .25s ease; }
+.package-grid-nav-button:hover:not(:disabled) { border-color: #c9a227; background: #c9a227; color: #1a2650; }
+.package-grid-nav-button:disabled { opacity: .35; cursor: not-allowed; }
 
 /* Package detail page */
 .pkg-hero { position: relative; min-height: 460px; margin-top: 0; padding: 150px 20px 60px; display: flex; align-items: flex-end; background-size: cover; background-position: center; overflow: hidden; }

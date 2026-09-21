@@ -4,17 +4,6 @@ import { DURATION_DAY_RANGE, DURATION_VALUES } from '../constants/duration';
 
 export const CATEGORY_VALUES = ['nepal-tours', 'trekking', 'kailash'] as const;
 
-export const DESTINATION_VALUES = [
-  'Chitwan',
-  'Pokhara',
-  'Lumbini',
-  'Janakpur',
-  'Kathmandu',
-  'Ilam',
-  'Muktinath',
-  'Nagarkot',
-] as const;
-
 export const MONTH_VALUES = [
   'January',
   'February',
@@ -111,7 +100,7 @@ export const packageInputSchema = z
     category: z.enum(CATEGORY_VALUES).default('nepal-tours'),
     title: z.string().min(3, 'Title must be at least 3 characters').max(120, 'Title must be at most 120 characters'),
     coverImage: z.string().min(1, 'Cover image is required'),
-    destinations: z.array(z.enum(DESTINATION_VALUES)).min(1, 'Select at least one destination'),
+    destinations: z.array(z.string().min(1)).min(1, 'Select at least one destination'),
     duration: z.enum(DURATION_VALUES),
     bestTimeToVisit: z.array(bestTimeToVisitEntrySchema).default([]),
     description: z.string().min(50, 'Description must be at least 50 characters'),

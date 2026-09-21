@@ -100,7 +100,7 @@ const siteContentSeed = {
   ],
   heroSlides: [
     {
-      eyebrow: 'PILGRIMAGE · Kasilash',
+      eyebrow: 'PILGRIMAGE · Kailash',
       title: 'A landscape\nwith a pulse.',
       description: 'Follow ancient paths, warm teahouses and the quiet rituals that have held these valleys together for centuries.',
       image: '/content-images/Kailash.png',

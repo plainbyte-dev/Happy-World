@@ -4,7 +4,6 @@ import { DURATION_VALUES } from '../constants/duration';
 import {
   CATEGORY_VALUES,
   CURRENCY_VALUES,
-  DESTINATION_VALUES,
   MONTH_VALUES,
   RATING_VALUES,
   STATUS_VALUES,
@@ -83,7 +82,7 @@ const packageSchema = new Schema(
     category: { type: String, enum: CATEGORY_VALUES, default: 'nepal-tours' },
     title: { type: String, required: true, minlength: 3, maxlength: 120 },
     coverImage: { type: String, required: true },
-    destinations: { type: [String], enum: DESTINATION_VALUES, default: [] },
+    destinations: { type: [String], default: [] },
     duration: { type: String, enum: DURATION_VALUES, required: true },
     bestTimeToVisit: { type: [bestTimeToVisitEntrySchema], default: [] },
     description: { type: String, required: true, minlength: 50 },

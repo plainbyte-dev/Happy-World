@@ -718,22 +718,21 @@ function localDetails(tripsMenu: SiteContent['tripsMenu']): PackageDetail[] {
   });
 }
 
-let cache: Promise<PackageDetail[]> | null = null;
-
+// Deliberately uncached here: fetchApiPackages()/getSiteContent() already cache at the
+// fetch level (`next: { revalidate: 300 }`), which auto-refreshes. Caching the merged
+// result in a module-level variable on top of that would freeze it for the lifetime of
+// the server process — newly created or published packages would never appear without
+// a restart, which is exactly the bug this used to have.
 async function allDetails(): Promise<PackageDetail[]> {
-  if (!cache) {
-    cache = Promise.all([fetchApiPackages(), getSiteContent()]).then(([apiDetails, siteContent]) => {
-      const local = localDetails(siteContent.tripsMenu);
-      const seenSlugs = new Set(local.map((detail) => detail.slug));
-      const uniqueApiDetails = apiDetails.filter((detail) => {
-        if (seenSlugs.has(detail.slug)) return false;
-        seenSlugs.add(detail.slug);
-        return true;
-      });
-      return [...local, ...uniqueApiDetails];
-    });
-  }
-  return cache;
+  const [apiDetails, siteContent] = await Promise.all([fetchApiPackages(), getSiteContent()]);
+  const local = localDetails(siteContent.tripsMenu);
+  const seenSlugs = new Set(local.map((detail) => detail.slug));
+  const uniqueApiDetails = apiDetails.filter((detail) => {
+    if (seenSlugs.has(detail.slug)) return false;
+    seenSlugs.add(detail.slug);
+    return true;
+  });
+  return [...local, ...uniqueApiDetails];
 }
 
 export async function getLivePackages(): Promise<PackageDetail[]> {

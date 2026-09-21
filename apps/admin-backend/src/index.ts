@@ -3,6 +3,7 @@ import cors from 'cors';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { connectDB } from './config/db';
 import { errorHandler } from './middleware/errorHandler';
+import destinationRoutes from './routes/destination.routes';
 import packageRoutes from './routes/package.routes';
 import publicRoutes from './routes/public.routes';
 import siteContentRoutes from './routes/siteContent.routes';
@@ -25,6 +26,7 @@ app.get('/', (_req: Request, res: Response) => {
 });
 
 app.use('/api/admin/packages', packageRoutes);
+app.use('/api/admin/destinations', destinationRoutes);
 app.use('/api/admin/site-content', siteContentRoutes);
 app.use('/api/admin', uploadRoutes);
 app.use('/api', publicRoutes);

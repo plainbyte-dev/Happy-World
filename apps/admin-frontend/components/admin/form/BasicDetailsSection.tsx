@@ -1,7 +1,8 @@
 import { Controller, type Control, type FieldErrors, type UseFormRegister } from 'react-hook-form';
 import { DURATION_VALUES } from '../../../constants/duration';
-import { CATEGORY_VALUES, DESTINATION_VALUES, type PackageInput } from '../../../schemas/package.schema';
+import { CATEGORY_VALUES, type PackageInput } from '../../../schemas/package.schema';
 import { inputClass, labelClass } from '../../../lib/formStyles';
+import { useDestinationOptions } from '../../../lib/useDestinationOptions';
 import { FieldError } from './FieldError';
 import { ImageUploader } from './ImageUploader';
 import { MultiSelectDropdown } from './MultiSelectDropdown';
@@ -27,6 +28,8 @@ const CATEGORY_LABELS: Record<(typeof CATEGORY_VALUES)[number], string> = {
 };
 
 export function BasicDetailsSection({ control, register, errors }: BasicDetailsSectionProps) {
+  const destinationOptions = useDestinationOptions();
+
   return (
     <SectionCard title="Basic details">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -75,7 +78,7 @@ export function BasicDetailsSection({ control, register, errors }: BasicDetailsS
             name="destinations"
             render={({ field }) => (
               <MultiSelectDropdown
-                options={DESTINATION_VALUES}
+                options={destinationOptions}
                 value={field.value}
                 onChange={field.onChange}
                 placeholder="Select destinations"
@@ -83,6 +86,15 @@ export function BasicDetailsSection({ control, register, errors }: BasicDetailsS
             )}
           />
           <FieldError message={errors.destinations?.message} />
+          {destinationOptions.length === 0 && (
+            <p className="mt-1 text-xs text-slate-400">
+              No destinations yet —{' '}
+              <a href="/admin/destinations" className="underline">
+                add one
+              </a>
+              .
+            </p>
+          )}
         </div>
 
         <div>

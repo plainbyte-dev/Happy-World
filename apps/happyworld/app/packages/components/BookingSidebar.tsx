@@ -98,21 +98,6 @@ export default function BookingSidebar({ detail, onEnquire }: BookingSidebarProp
           ))}
         </div>
       </div>
-
-      {/* Guide Card */}
-      <div className="glass-card rounded-3xl p-5">
-        <p className="text-xs font-bold uppercase tracking-[0.3em] text-muted-foreground mb-4">Your Lead Guide</p>
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-muted">
-            <img src={detail.guide.photo} alt={detail.guide.name} className="w-full h-full object-cover" />
-          </div>
-          <div>
-            <p className="font-bold text-foreground text-sm">{detail.guide.name}</p>
-            <p className="text-xs text-primary">{detail.destinationLabel} guide</p>
-          </div>
-        </div>
-        <p className="text-xs text-muted-foreground leading-relaxed">{detail.guide.bio}</p>
-      </div>
     </div>
   );
 }

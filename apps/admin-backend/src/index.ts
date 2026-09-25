@@ -1,5 +1,5 @@
+/// <reference path="./types/express.d.ts" />
 import 'dotenv/config';
-import './types/express';
 import cors from 'cors';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { connectDB } from './config/db';

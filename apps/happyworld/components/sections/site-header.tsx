@@ -22,7 +22,7 @@ type ApiPackageSummary = {
   status: string;
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://tours-travels-admin.onrender.com';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://happy-world-admin-backend-neon.vercel.app';
 
 function SiteHeader({ scrolled, menuOpen, onToggleMenu, onEnquire, solid }: SiteHeaderProps) {
   const content = useSiteContent();

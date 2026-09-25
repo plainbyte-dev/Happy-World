@@ -404,7 +404,7 @@ function generateDetail(pkg: FlatPackage): PackageDetail {
 }
 
 // Live packages published from the admin dashboard.
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://tours-travels-admin.onrender.com';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://happy-world-admin-backend-neon.vercel.app';
 
 type ApiMeals = { breakfast: boolean; lunch: boolean; dinner: boolean };
 

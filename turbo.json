@@ -5,6 +5,17 @@
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
+    "backend#build": {
+      "passThroughEnv": [
+        "PORT",
+        "MONGODB_URI",
+        "CLIENT_ORIGIN",
+        "CLOUDINARY_CLOUD_NAME",
+        "CLOUDINARY_API_KEY",
+        "CLOUDINARY_API_SECRET",
+        "JWT_SECRET"
+      ]
+    },
     "dev": {
       "cache": false,
       "persistent": true

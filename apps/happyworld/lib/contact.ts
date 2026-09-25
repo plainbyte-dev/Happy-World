@@ -1,6 +1,6 @@
 import type { EnquiryValues } from '@/lib/enquiry-schema';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://tours-travels-admin.onrender.com';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://happy-world-admin-backend-neon.vercel.app';
 
 export async function submitContactEnquiry(values: EnquiryValues): Promise<boolean> {
   try {

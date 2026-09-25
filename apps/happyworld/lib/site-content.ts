@@ -83,7 +83,7 @@ export interface SiteContent {
 // `packages` array (see mergeTripsMenu below).
 export const defaultSiteContent: SiteContent = staticContent as unknown as SiteContent;
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://tours-travels-admin.onrender.com';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://happy-world-admin-backend-neon.vercel.app';
 
 type CmsTripsCategory = Omit<TripsCategory, 'destinations'> & {
   destinations: Omit<Destination, 'packages'>[];

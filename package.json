@@ -2,12 +2,13 @@
   "name": "tours-travel",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "pnpm@10.33.0",
+  "packageManager": "bun@1.4.2",
+  "workspaces": ["apps/*"],
   "scripts": {
-    "dev": "turbo dev",
-    "build": "turbo build",
-    "lint": "turbo lint",
-    "preinstall": "npx only-allow pnpm"
+    "preinstall": "npx only-allow bun",
+    "dev": "bunx turbo run dev",
+    "build": "bunx turbo run build",
+    "test": "bunx turbo run test"
   },
   "devDependencies": {
     "turbo": "latest",

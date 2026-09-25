@@ -3,12 +3,17 @@ import cors from 'cors';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { connectDB } from './config/db';
 import { errorHandler } from './middleware/errorHandler';
+import authRoutes from './routes/auth.routes';
 import destinationRoutes from './routes/destination.routes';
 import packageRoutes from './routes/package.routes';
 import publicRoutes from './routes/public.routes';
 import siteContentRoutes from './routes/siteContent.routes';
 import uploadRoutes from './routes/upload.routes';
 import { ApiError } from './utils/ApiError';
+
+if (!process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required (set it in .env)');
+}
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -25,6 +30,7 @@ app.get('/', (_req: Request, res: Response) => {
   res.json({ message: 'Express + TypeScript server is running!' });
 });
 
+app.use('/api/auth', authRoutes);
 app.use('/api/admin/packages', packageRoutes);
 app.use('/api/admin/destinations', destinationRoutes);
 app.use('/api/admin/site-content', siteContentRoutes);
@@ -42,11 +48,15 @@ if (process.env.VERCEL) {
   // long-running process to block startup on, so just kick the connection off.
   void connectDB(MONGODB_URI);
 } else {
-  connectDB(MONGODB_URI).then(() => {
-    app.listen(PORT, () => {
-      console.log(`⚡️[server]: Server is running at http://localhost:${PORT}`);
+  connectDB(MONGODB_URI)
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`⚡️[server]: Server is running at http://localhost:${PORT}`);
+      });
+    })
+    .catch(() => {
+      process.exit(1);
     });
-  });
 }
 
 export default app;

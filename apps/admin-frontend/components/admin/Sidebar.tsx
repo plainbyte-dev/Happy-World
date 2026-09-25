@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { logout } from '../../lib/auth';
 
 interface NavItem {
   href: string;
@@ -39,6 +40,14 @@ const pinIcon = (
   </svg>
 );
 
+const logoutIcon = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className="h-5 w-5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M16 17l5-5-5-5" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M21 12H9" />
+  </svg>
+);
+
 const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: 'Packages',
@@ -71,7 +80,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-screen w-60 shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-white">
+    <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-white">
       <div className="flex h-16 shrink-0 items-center border-b border-slate-200 px-5">
         <Link href="/admin/packages" className="text-sm font-semibold tracking-wide text-slate-900">
           Tour Package Admin
@@ -102,6 +111,16 @@ export function Sidebar() {
           </div>
         ))}
       </nav>
+      <div className="shrink-0 border-t border-slate-200 p-3">
+        <button
+          type="button"
+          onClick={logout}
+          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+        >
+          {logoutIcon}
+          Log out
+        </button>
+      </div>
     </aside>
   );
 }

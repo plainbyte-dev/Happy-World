@@ -1,5 +1,11 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
+export const TOKEN_KEY = 'admin_token';
+
+function getStoredToken(): string | null {
+  return typeof window !== 'undefined' ? window.localStorage.getItem(TOKEN_KEY) : null;
+}
+
 export interface ApiSuccess<T> {
   success: true;
   data: T;
@@ -25,13 +31,26 @@ export class ApiRequestError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = getStoredToken();
+
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
-    headers:
-      init?.body && !(init.body instanceof FormData)
-        ? { 'Content-Type': 'application/json', ...init.headers }
-        : init?.headers,
+    headers: {
+      ...(init?.body && !(init.body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...init?.headers,
+    },
   });
+
+  if (res.status === 401) {
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(TOKEN_KEY);
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+    throw new ApiRequestError('Session expired — please log in again');
+  }
 
   const json = (await res.json()) as ApiResult<T>;
 
@@ -64,6 +83,10 @@ export function uploadImages(files: File[], onProgress?: (percent: number) => vo
 
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${API_BASE_URL}/api/admin/upload`);
+    const token = getStoredToken();
+    if (token) {
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    }
 
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable && onProgress) {

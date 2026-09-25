@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: admin-backend
+    runtime: node
+    plan: free
+    buildCommand: curl -fsSL https://bun.sh/install | bash && ~/.bun/bin/bun install --frozen-lockfile
+    startCommand: ~/.bun/bin/bun run apps/admin-backend/src/index.ts
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CLIENT_ORIGIN
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false

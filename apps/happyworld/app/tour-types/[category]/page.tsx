@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import AppImage from '@/components/ui/AppImage';
 import SiteChrome from '@/components/site-chrome';
 import { getSiteContent } from '@/lib/site-content';
-import { getLivePackagesByCategory } from '@/lib/packages';
+import { getPackagesByCategory } from '@/lib/packages';
 
 export async function generateStaticParams() {
   const { tripsMenu } = await getSiteContent();
@@ -29,7 +29,7 @@ async function TourTypePage({ params }: { params: Promise<{ category: string }> 
   const category = tripsMenu.find((c) => c.key === categoryKey);
   if (!category) notFound();
 
-  const packages = await getLivePackagesByCategory(category.key);
+  const packages = await getPackagesByCategory(category.key);
 
   return (
     <SiteChrome>

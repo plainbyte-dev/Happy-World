@@ -754,12 +754,6 @@ export async function getPackagesByCategory(categoryKey: string): Promise<Packag
   return details.filter((detail) => detail.categoryKey === categoryKey);
 }
 
-// Live database packages only — no locally-generated placeholder data — filtered by category.
-export async function getLivePackagesByCategory(categoryKey: string): Promise<PackageDetail[]> {
-  const details = await fetchApiPackages();
-  return details.filter((detail) => detail.categoryKey === categoryKey);
-}
-
 export async function getRelatedPackages(detail: PackageDetail, limit = 3): Promise<PackageDetail[]> {
   const details = await allDetails();
   const others = details.filter((candidate) => candidate.slug !== detail.slug);

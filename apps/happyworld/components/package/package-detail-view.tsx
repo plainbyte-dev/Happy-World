@@ -25,10 +25,18 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openCustomSignal, setOpenCustomSignal] = useState(0);
 
   const goToEnquiry = () => {
     setMenuOpen(false);
     router.push('/#enquiry');
+  };
+
+  // Scrolls down to this same page's "Build Your Own" itinerary builder and opens it
+  // directly, instead of routing away to the generic homepage enquiry section.
+  const goToCustomTrip = () => {
+    setMenuOpen(false);
+    setOpenCustomSignal((n) => n + 1);
   };
 
   useEffect(() => {
@@ -52,7 +60,7 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
         </div>
 
         <aside className="pkg-sidebar">
-          <BookingSidebar detail={detail} onEnquire={goToEnquiry} />
+          <BookingSidebar detail={detail} onEnquire={goToEnquiry} onBuildCustomTrip={goToCustomTrip} />
         </aside>
       </div>
 
@@ -63,6 +71,7 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
           heroImage={detail.heroImage}
           packageName={detail.name}
           duration={detail.quickFacts.duration}
+          openCustomSignal={openCustomSignal}
         />
       </div>
 

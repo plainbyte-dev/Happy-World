@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, NotebookPen, Plus, Send, Trash2 } from 'lucide-react';
 
@@ -17,6 +17,8 @@ type CustomItinerarySectionProps = {
   packageName: string;
   /** When true, the component fills its container width; outer split-panel handles expand/collapse. */
   fullWidth?: boolean;
+  /** Bump this (e.g. a counter) to force the builder open from an ancestor, such as a sidebar CTA. */
+  forceOpenSignal?: number;
 };
 
 let idCounter = 0;
@@ -27,10 +29,23 @@ const nextId = () => {
 
 const blankDay = (): CustomDay => ({ id: nextId(), title: '', detail: '', meals: '', stay: '', transport: '' });
 
-export default function CustomItinerarySection({ packageName, fullWidth = false }: CustomItinerarySectionProps) {
+// First entry of each list is the blank/unselected placeholder (value=""), kept out of the
+// sent message by the existing `day.meals.trim() && ...` checks in sendItinerary below.
+const MEALS_OPTIONS = ['No meals included', 'Breakfast only', 'Breakfast & Lunch', 'Breakfast & Dinner', 'Lunch & Dinner', 'All meals (Breakfast, Lunch & Dinner)'];
+const STAY_OPTIONS = ['Teahouse', 'Guesthouse', 'Lodge', 'Hotel', 'Homestay', 'Camp / Tented camp'];
+const TRANSPORT_OPTIONS = ['On foot', 'Private vehicle', 'Support vehicle', 'Shared jeep', 'Public bus', 'Domestic flight'];
+
+export default function CustomItinerarySection({ packageName, fullWidth = false, forceOpenSignal }: CustomItinerarySectionProps) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  // Full-width means the outer split panel already made the user choose to expand
+  // this exact section — starting it collapsed again would force a redundant
+  // second "Open builder" click right after the first one.
+  const [open, setOpen] = useState(fullWidth);
   const [days, setDays] = useState<CustomDay[]>([blankDay()]);
+
+  useEffect(() => {
+    if (forceOpenSignal) setOpen(true);
+  }, [forceOpenSignal]);
 
   const updateDay = (id: string, field: keyof Omit<CustomDay, 'id'>, value: string) => {
     setDays((prev) => prev.map((day) => (day.id === id ? { ...day, [field]: value } : day)));
@@ -58,7 +73,7 @@ export default function CustomItinerarySection({ packageName, fullWidth = false 
       lines.push('');
     });
     const message = lines.join('\n').trim();
-    router.push(`/contact?message=${encodeURIComponent(message)}`);
+    router.push(`/contact?message=${encodeURIComponent(message)}&source=custom-itinerary`);
   };
 
   return (
@@ -129,27 +144,42 @@ export default function CustomItinerarySection({ packageName, fullWidth = false 
                       data-testid={`input-custom-detail-${i + 1}`}
                     />
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <input
+                      <select
                         value={day.meals}
                         onChange={(e) => updateDay(day.id, 'meals', e.target.value)}
-                        placeholder="Meals"
-                        className="bg-transparent border-b border-border pb-2 text-xs text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-primary transition-colors"
-                        data-testid={`input-custom-meals-${i + 1}`}
-                      />
-                      <input
+                        className="bg-transparent border-b border-border pb-2 text-xs text-foreground outline-none focus:border-primary transition-colors"
+                        aria-label="Meals"
+                        data-testid={`select-custom-meals-${i + 1}`}
+                      >
+                        <option value="">Meals</option>
+                        {MEALS_OPTIONS.map((option) => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
+                      <select
                         value={day.stay}
                         onChange={(e) => updateDay(day.id, 'stay', e.target.value)}
-                        placeholder="Stay"
-                        className="bg-transparent border-b border-border pb-2 text-xs text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-primary transition-colors"
-                        data-testid={`input-custom-stay-${i + 1}`}
-                      />
-                      <input
+                        className="bg-transparent border-b border-border pb-2 text-xs text-foreground outline-none focus:border-primary transition-colors"
+                        aria-label="Stay"
+                        data-testid={`select-custom-stay-${i + 1}`}
+                      >
+                        <option value="">Stay</option>
+                        {STAY_OPTIONS.map((option) => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
+                      <select
                         value={day.transport}
                         onChange={(e) => updateDay(day.id, 'transport', e.target.value)}
-                        placeholder="Transport"
-                        className="bg-transparent border-b border-border pb-2 text-xs text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-primary transition-colors"
-                        data-testid={`input-custom-transport-${i + 1}`}
-                      />
+                        className="bg-transparent border-b border-border pb-2 text-xs text-foreground outline-none focus:border-primary transition-colors"
+                        aria-label="Transport"
+                        data-testid={`select-custom-transport-${i + 1}`}
+                      >
+                        <option value="">Transport</option>
+                        {TRANSPORT_OPTIONS.map((option) => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </div>

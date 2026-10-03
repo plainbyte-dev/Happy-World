@@ -16,9 +16,11 @@ type Props = {
   heroImage: string;
   packageName: string;
   duration?: string;
+  /** Bump this (e.g. a counter) to scroll to and open the "Build Your Own" panel from an ancestor, such as a sidebar CTA. */
+  openCustomSignal?: number;
 };
 
-export default function ItinerarySplitPanel({ itinerary, destinationLabel, heroImage, packageName, duration }: Props) {
+export default function ItinerarySplitPanel({ itinerary, destinationLabel, heroImage, packageName, duration, openCustomSignal }: Props) {
   // active  — which panel is currently at 80% width (drives the CSS transition)
   // content — which panel is currently rendering its full content (null during transition)
   const [active, setActive] = useState<Panel>('itinerary');
@@ -26,6 +28,7 @@ export default function ItinerarySplitPanel({ itinerary, destinationLabel, heroI
   const [isMobile, setIsMobile] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const mobileCustomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 639px)');
@@ -50,6 +53,17 @@ export default function ItinerarySplitPanel({ itinerary, destinationLabel, heroI
     timerRef.current = setTimeout(() => setContent(panel), ANIM_MS);
   }, [active]);
 
+  // Lets an ancestor (e.g. a sidebar "Build a Custom Trip" button) jump straight to the
+  // open builder instead of just scrolling near it and leaving a second click to do.
+  useEffect(() => {
+    if (!openCustomSignal) return;
+    if (isMobile) {
+      mobileCustomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      expand('custom');
+    }
+  }, [openCustomSignal, isMobile, expand]);
+
   // ── Mobile: just stack both panels vertically, no collapse behaviour ──────
   if (isMobile) {
     return (
@@ -61,7 +75,9 @@ export default function ItinerarySplitPanel({ itinerary, destinationLabel, heroI
           packageName={packageName}
           duration={duration}
         />
-        <CustomItinerarySection packageName={packageName} />
+        <div ref={mobileCustomRef}>
+          <CustomItinerarySection packageName={packageName} forceOpenSignal={openCustomSignal} />
+        </div>
       </div>
     );
   }

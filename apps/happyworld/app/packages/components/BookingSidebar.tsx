@@ -7,9 +7,10 @@ import type { PackageDetail } from '@/lib/packages';
 type BookingSidebarProps = {
   detail: PackageDetail;
   onEnquire: () => void;
+  onBuildCustomTrip: () => void;
 };
 
-export default function BookingSidebar({ detail, onEnquire }: BookingSidebarProps) {
+export default function BookingSidebar({ detail, onEnquire, onBuildCustomTrip }: BookingSidebarProps) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [travelers, setTravelers] = useState(2);
@@ -80,7 +81,7 @@ export default function BookingSidebar({ detail, onEnquire }: BookingSidebarProp
         <button type="button" onClick={onEnquire} className="btn-primary w-full text-center mb-3">
           Enquire
         </button>
-        <button type="button" onClick={onEnquire} className="btn-outline w-full text-center text-sm">
+        <button type="button" onClick={onBuildCustomTrip} className="btn-outline w-full text-center text-sm">
           Build a Custom Trip
         </button>
 

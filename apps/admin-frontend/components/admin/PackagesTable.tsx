@@ -59,7 +59,61 @@ export function PackagesTable() {
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+    <>
+      {/* Card list — small screens only, avoids forcing horizontal table scroll */}
+      <div className="flex flex-col gap-3 sm:hidden">
+        {packages.map((pkg) => (
+          <div key={pkg._id} className="flex gap-3 rounded-lg border border-slate-200 bg-white p-3">
+            {pkg.coverImage ? (
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md">
+                {isOptimizableImageUrl(pkg.coverImage) ? (
+                  <Image src={resolveImageUrl(pkg.coverImage)} alt="" fill sizes="64px" className="object-cover" />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element -- legacy non-Cloudinary URL, not covered by images.remotePatterns
+                  <img src={resolveImageUrl(pkg.coverImage)} alt="" className="h-full w-full object-cover" />
+                )}
+              </div>
+            ) : (
+              <div className="h-16 w-16 shrink-0 rounded-md bg-slate-100" />
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-2">
+                <p className="truncate font-medium text-slate-900">{pkg.title}</p>
+                <span
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+                    pkg.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  {pkg.status}
+                </span>
+              </div>
+              <p className="mt-1 truncate text-sm text-slate-600">{pkg.destinations.join(', ')}</p>
+              <p className="mt-0.5 text-sm text-slate-600">
+                {pkg.duration} days · {pkg.cost.currency} {pkg.cost.from.toLocaleString()} – {pkg.cost.to.toLocaleString()}
+              </p>
+              <div className="mt-2 flex gap-4">
+                <Link
+                  href={`/admin/packages/${pkg._id}/edit`}
+                  className="rounded px-1 py-1 text-sm font-medium text-slate-700 hover:text-slate-900"
+                >
+                  Edit
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => void handleDelete(pkg._id, pkg.title)}
+                  disabled={deletingId === pkg._id}
+                  className="rounded px-1 py-1 text-sm font-medium text-red-600 hover:text-red-700 disabled:opacity-50"
+                >
+                  {deletingId === pkg._id ? 'Deleting…' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Table — sm and up */}
+      <div className="hidden overflow-x-auto rounded-lg border border-slate-200 bg-white sm:block">
       <table className="w-full min-w-[720px] text-left text-sm">
         <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
           <tr>
@@ -123,6 +177,7 @@ export function PackagesTable() {
           ))}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   );
 }

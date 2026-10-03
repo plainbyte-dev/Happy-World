@@ -7,10 +7,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <AuthGuard>
       <ToastProvider>
-        <div className="flex min-h-screen bg-slate-50 text-slate-900">
+        <div className="flex min-h-screen flex-col bg-slate-50 text-slate-900 lg:flex-row">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto">
-            <div className="mx-auto w-full max-w-6xl px-6 py-8">{children}</div>
+          <main className="min-w-0 flex-1 overflow-y-auto">
+            <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8">{children}</div>
           </main>
         </div>
       </ToastProvider>

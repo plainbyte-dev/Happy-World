@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { logout } from '../../lib/auth';
 
 interface NavItem {
@@ -48,6 +48,18 @@ const logoutIcon = (
   </svg>
 );
 
+const menuIcon = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className="h-5 w-5">
+    <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+);
+
+const closeIcon = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} className="h-5 w-5">
+    <path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" />
+  </svg>
+);
+
 const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: 'Packages',
@@ -78,13 +90,27 @@ function isActive(pathname: string, item: NavItem): boolean {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
 
-  return (
-    <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-white">
-      <div className="flex h-16 shrink-0 items-center border-b border-slate-200 px-5">
+  // Close the drawer whenever the route changes (e.g. after tapping a nav link).
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  const navContent = (
+    <>
+      <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-5">
         <Link href="/admin/packages" className="text-sm font-semibold tracking-wide text-slate-900">
           Tour Package Admin
         </Link>
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          aria-label="Close menu"
+          className="text-slate-500 hover:text-slate-900 lg:hidden"
+        >
+          {closeIcon}
+        </button>
       </div>
       <nav className="flex-1 space-y-6 px-3 py-4">
         {navGroups.map((group) => (
@@ -121,6 +147,40 @@ export function Sidebar() {
           Log out
         </button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile top bar — only the hamburger trigger; hidden once the sidebar is static at lg: */}
+      <div className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 lg:hidden">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Open menu"
+          className="text-slate-600 hover:text-slate-900"
+        >
+          {menuIcon}
+        </button>
+        <span className="text-sm font-semibold tracking-wide text-slate-900">Tour Package Admin</span>
+      </div>
+
+      {/* Backdrop, mobile only, shown while the drawer is open */}
+      {open ? (
+        <div
+          className="fixed inset-0 z-40 bg-slate-900/40 lg:hidden"
+          onClick={() => setOpen(false)}
+          aria-hidden="true"
+        />
+      ) : null}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex h-screen w-60 shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-white transition-transform duration-200 ease-out lg:sticky lg:top-0 lg:z-auto lg:translate-x-0 ${
+          open ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {navContent}
+      </aside>
+    </>
   );
 }

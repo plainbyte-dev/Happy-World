@@ -54,6 +54,7 @@ function ContactPageClient() {
   const contactMethods = buildContactMethods(content);
   const searchParams = useSearchParams();
   const prefillMessage = searchParams.get('message') ?? '';
+  const source = searchParams.get('source') === 'custom-itinerary' ? 'custom-itinerary' : 'website';
   const [submitted, setSubmitted] = useState(false);
   const form = useForm<EnquiryValues>({
     resolver: zodResolver(enquirySchema),
@@ -61,7 +62,7 @@ function ContactPageClient() {
   });
 
   const submitEnquiry = async (values: EnquiryValues) => {
-    await submitContactEnquiry(values);
+    await submitContactEnquiry(values, source);
     window.open(buildEnquiryWhatsappUrl(content.footer.whatsapp, values), '_blank', 'noopener,noreferrer');
     setSubmitted(true);
     form.reset();

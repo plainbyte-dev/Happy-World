@@ -2,7 +2,7 @@ import type { EnquiryValues } from '@/lib/enquiry-schema';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://happy-world-admin-backend-neon.vercel.app';
 
-export async function submitContactEnquiry(values: EnquiryValues): Promise<boolean> {
+export async function submitContactEnquiry(values: EnquiryValues, source: string = 'website'): Promise<boolean> {
   try {
     const res = await fetch(`${API_BASE}/api/contact`, {
       method: 'POST',
@@ -13,7 +13,7 @@ export async function submitContactEnquiry(values: EnquiryValues): Promise<boole
         interest: values.interest,
         message: values.message,
         updates: values.updates ?? false,
-        source: 'website',
+        source,
       }),
     });
     if (!res.ok) return false;

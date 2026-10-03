@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowDownRight, ArrowRight, ChevronDown, MapPin } from 'lucide-react';
+import { ArrowDownRight, ArrowRight, MapPin } from 'lucide-react';
 import { useSiteContent } from '@/lib/site-content-context';
 
 type MobileMenuProps = {
@@ -27,7 +27,7 @@ function MobileMenu({ open, onNavigate, onEnquire }: MobileMenuProps) {
                   data-testid="button-mobile-trips"
                 >
                   {item.label}
-                  <ChevronDown size={25} strokeWidth={1.4} className={tripsExpanded ? 'mobile-nav-trips-chevron-open' : ''} />
+                  <ArrowDownRight size={25} strokeWidth={1.4} />
                 </button>
                 {tripsExpanded ? (
                   <div className="mobile-nav-trips-list">

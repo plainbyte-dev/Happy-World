@@ -24,6 +24,16 @@ const CLIENT_ORIGINS = (process.env.CLIENT_ORIGIN || 'http://localhost:3001')
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+// TEMPORARY DEBUG LOGGING — remove once the CORS mismatch is confirmed fixed.
+// JSON.stringify reveals any stray whitespace/newline characters that a plain
+// console.log would silently swallow.
+console.log('[cors] raw CLIENT_ORIGIN env var:', JSON.stringify(process.env.CLIENT_ORIGIN));
+console.log('[cors] parsed CLIENT_ORIGINS array:', JSON.stringify(CLIENT_ORIGINS));
+app.use((req, _res, next) => {
+  console.log('[cors] incoming request Origin header:', JSON.stringify(req.headers.origin), 'for', req.method, req.path);
+  next();
+});
+
 app.use(cors({ origin: CLIENT_ORIGINS }));
 app.use(express.json());
 

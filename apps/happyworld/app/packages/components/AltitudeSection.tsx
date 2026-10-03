@@ -19,7 +19,8 @@ const acclimatizationTips: { icon: IconName; title: string; desc: string }[] = [
   { icon: 'PlusCircleIcon', title: 'Ask About Diamox', desc: 'Acetazolamide (Diamox) is a commonly used preventative — consult your doctor before travel.' },
 ];
 
-const CHART_WIDTH = 800;
+const CHART_WIDTH_DESKTOP = 800;
+const CHART_WIDTH_MOBILE = 400;
 const CHART_HEIGHT = 260;
 const CHART_PAD_X = 24;
 const CHART_PAD_TOP = 32;
@@ -36,6 +37,20 @@ export default function AltitudeSection({ altitudeProfile, itinerary }: Altitude
   const [loadingLive, setLoadingLive] = useState(false);
   const [liveError, setLiveError] = useState<string | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
+  // A narrower viewBox on mobile means the same absolute font-size/stroke values
+  // render at a larger fraction of the viewport instead of shrinking along with
+  // the full 800-unit desktop chart scaled down to a ~336px-wide phone screen.
+  const CHART_WIDTH = isMobile ? CHART_WIDTH_MOBILE : CHART_WIDTH_DESKTOP;
 
   const coords = useMemo(
     () =>
@@ -191,6 +206,7 @@ export default function AltitudeSection({ altitudeProfile, itinerary }: Altitude
               onMouseEnter={() => setHoveredIndex(i)}
               onFocus={() => setHoveredIndex(i)}
               onBlur={() => setHoveredIndex(null)}
+              onClick={() => setHoveredIndex((current) => (current === i ? null : i))}
               tabIndex={0}
             >
               <circle cx={c.x} cy={c.y} r={12} fill="transparent" />

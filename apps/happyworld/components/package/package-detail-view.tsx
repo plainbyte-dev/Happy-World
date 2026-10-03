@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
@@ -9,7 +9,7 @@ import MobileMenu from '@/components/sections/mobile-menu';
 import SiteFooter from '@/components/sections/site-footer';
 import PackageHero from '@/app/packages/components/PackageHero';
 import GallerySection from '@/app/packages/components/GallerySection';
-import ItinerarySplitPanel from '@/app/packages/components/ItinerarySplitPanel';
+import ItinerarySplitPanel, { type ItinerarySplitPanelHandle } from '@/app/packages/components/ItinerarySplitPanel';
 import AltitudeSection from '@/app/packages/components/AltitudeSection';
 import WhenToVisit from '@/app/packages/components/WhenToVisit';
 import FaqSection from '@/app/packages/components/FaqSection';
@@ -25,7 +25,7 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [openCustomSignal, setOpenCustomSignal] = useState(0);
+  const splitPanelRef = useRef<ItinerarySplitPanelHandle>(null);
 
   const goToEnquiry = () => {
     setMenuOpen(false);
@@ -36,7 +36,7 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
   // directly, instead of routing away to the generic homepage enquiry section.
   const goToCustomTrip = () => {
     setMenuOpen(false);
-    setOpenCustomSignal((n) => n + 1);
+    splitPanelRef.current?.openCustom();
   };
 
   useEffect(() => {
@@ -66,12 +66,12 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
 
       <div className="max-w-360 mx-auto px-5 pb-20">
         <ItinerarySplitPanel
+          ref={splitPanelRef}
           itinerary={detail.itinerary}
           destinationLabel={detail.destinationLabel}
           heroImage={detail.heroImage}
           packageName={detail.name}
           duration={detail.quickFacts.duration}
-          openCustomSignal={openCustomSignal}
         />
       </div>
 

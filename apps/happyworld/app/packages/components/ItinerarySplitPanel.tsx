@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { forwardRef, useState, useEffect, useRef, useCallback, useImperativeHandle } from 'react';
 import { CalendarDays, ChevronRight, NotebookPen } from 'lucide-react';
 import ItenarySection from '@/app/packages/components/ItenarySection';
-import CustomItinerarySection from '@/app/packages/components/CustomItinerarySection';
+import CustomItinerarySection, { type CustomItinerarySectionHandle } from '@/app/packages/components/CustomItinerarySection';
 import type { ItineraryDay } from '@/lib/packages';
 
 const ANIM_MS = 460;
@@ -16,11 +16,17 @@ type Props = {
   heroImage: string;
   packageName: string;
   duration?: string;
-  /** Bump this (e.g. a counter) to scroll to and open the "Build Your Own" panel from an ancestor, such as a sidebar CTA. */
-  openCustomSignal?: number;
 };
 
-export default function ItinerarySplitPanel({ itinerary, destinationLabel, heroImage, packageName, duration, openCustomSignal }: Props) {
+export type ItinerarySplitPanelHandle = {
+  /** Scrolls to and opens the "Build Your Own" panel — called imperatively by an ancestor, e.g. a sidebar CTA. */
+  openCustom: () => void;
+};
+
+const ItinerarySplitPanel = forwardRef<ItinerarySplitPanelHandle, Props>(function ItinerarySplitPanel(
+  { itinerary, destinationLabel, heroImage, packageName, duration },
+  ref,
+) {
   // active  — which panel is currently at 80% width (drives the CSS transition)
   // content — which panel is currently rendering its full content (null during transition)
   const [active, setActive] = useState<Panel>('itinerary');
@@ -28,7 +34,7 @@ export default function ItinerarySplitPanel({ itinerary, destinationLabel, heroI
   const [isMobile, setIsMobile] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const mobileCustomRef = useRef<HTMLDivElement>(null);
+  const customSectionRef = useRef<CustomItinerarySectionHandle>(null);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 639px)');
@@ -55,14 +61,15 @@ export default function ItinerarySplitPanel({ itinerary, destinationLabel, heroI
 
   // Lets an ancestor (e.g. a sidebar "Build a Custom Trip" button) jump straight to the
   // open builder instead of just scrolling near it and leaving a second click to do.
-  useEffect(() => {
-    if (!openCustomSignal) return;
-    if (isMobile) {
-      mobileCustomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-      expand('custom');
-    }
-  }, [openCustomSignal, isMobile, expand]);
+  useImperativeHandle(ref, () => ({
+    openCustom: () => {
+      if (isMobile) {
+        customSectionRef.current?.open();
+      } else {
+        expand('custom');
+      }
+    },
+  }), [isMobile, expand]);
 
   // ── Mobile: just stack both panels vertically, no collapse behaviour ──────
   if (isMobile) {
@@ -75,9 +82,7 @@ export default function ItinerarySplitPanel({ itinerary, destinationLabel, heroI
           packageName={packageName}
           duration={duration}
         />
-        <div ref={mobileCustomRef}>
-          <CustomItinerarySection packageName={packageName} forceOpenSignal={openCustomSignal} />
-        </div>
+        <CustomItinerarySection ref={customSectionRef} packageName={packageName} />
       </div>
     );
   }
@@ -162,4 +167,6 @@ export default function ItinerarySplitPanel({ itinerary, destinationLabel, heroI
       </div>
     </div>
   );
-}
+});
+
+export default ItinerarySplitPanel;

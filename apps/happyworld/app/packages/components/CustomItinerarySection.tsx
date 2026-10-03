@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, NotebookPen, Plus, Send, Trash2 } from 'lucide-react';
 
@@ -17,8 +17,11 @@ type CustomItinerarySectionProps = {
   packageName: string;
   /** When true, the component fills its container width; outer split-panel handles expand/collapse. */
   fullWidth?: boolean;
-  /** Bump this (e.g. a counter) to force the builder open from an ancestor, such as a sidebar CTA. */
-  forceOpenSignal?: number;
+};
+
+export type CustomItinerarySectionHandle = {
+  /** Opens the builder and scrolls it into view — called imperatively by an ancestor, e.g. a sidebar CTA. */
+  open: () => void;
 };
 
 let idCounter = 0;
@@ -35,17 +38,24 @@ const MEALS_OPTIONS = ['No meals included', 'Breakfast only', 'Breakfast & Lunch
 const STAY_OPTIONS = ['Teahouse', 'Guesthouse', 'Lodge', 'Hotel', 'Homestay', 'Camp / Tented camp'];
 const TRANSPORT_OPTIONS = ['On foot', 'Private vehicle', 'Support vehicle', 'Shared jeep', 'Public bus', 'Domestic flight'];
 
-export default function CustomItinerarySection({ packageName, fullWidth = false, forceOpenSignal }: CustomItinerarySectionProps) {
+const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomItinerarySectionProps>(function CustomItinerarySection(
+  { packageName, fullWidth = false },
+  ref,
+) {
   const router = useRouter();
   // Full-width means the outer split panel already made the user choose to expand
   // this exact section — starting it collapsed again would force a redundant
   // second "Open builder" click right after the first one.
   const [open, setOpen] = useState(fullWidth);
   const [days, setDays] = useState<CustomDay[]>([blankDay()]);
+  const rootRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (forceOpenSignal) setOpen(true);
-  }, [forceOpenSignal]);
+  useImperativeHandle(ref, () => ({
+    open: () => {
+      setOpen(true);
+      rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+  }));
 
   const updateDay = (id: string, field: keyof Omit<CustomDay, 'id'>, value: string) => {
     setDays((prev) => prev.map((day) => (day.id === id ? { ...day, [field]: value } : day)));
@@ -77,7 +87,7 @@ export default function CustomItinerarySection({ packageName, fullWidth = false,
   };
 
   return (
-    <div className={fullWidth ? '' : 'flex justify-end'}>
+    <div ref={rootRef} className={fullWidth ? '' : 'flex justify-end'}>
       <div
         className={fullWidth ? 'w-full' : `w-full transition-[width] duration-500 ease-in-out ${open ? 'sm:w-4/5' : 'sm:w-1/5'}`}
         data-testid="custom-itinerary-panel"
@@ -223,4 +233,6 @@ export default function CustomItinerarySection({ packageName, fullWidth = false,
       </div>
     </div>
   );
-}
+});
+
+export default CustomItinerarySection;

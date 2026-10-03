@@ -5,16 +5,10 @@ export interface NavItem {
   href: string;
 }
 
-export interface DestinationPackage {
-  name: string;
-  description: string;
-}
-
 export interface Destination {
   label: string;
   href: string;
   blurb: string;
-  packages: DestinationPackage[];
 }
 
 export interface TripsCategory {
@@ -79,17 +73,12 @@ export interface SiteContent {
 }
 
 // The static file is the guaranteed-available default: it's what renders when
-// admin-backend is unreachable, and it's the sole source of each destination's
-// `packages` array (see mergeTripsMenu below).
+// admin-backend is unreachable.
 export const defaultSiteContent: SiteContent = staticContent as unknown as SiteContent;
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://happy-world-admin-backend-neon.vercel.app';
 
-type CmsTripsCategory = Omit<TripsCategory, 'destinations'> & {
-  destinations: Omit<Destination, 'packages'>[];
-};
-
-type CmsSiteContent = Omit<SiteContent, 'tripsMenu'> & { tripsMenu?: CmsTripsCategory[] };
+type CmsSiteContent = Omit<SiteContent, 'tripsMenu'> & { tripsMenu?: TripsCategory[] };
 
 async function fetchCmsContent(): Promise<Partial<CmsSiteContent> | null> {
   try {
@@ -103,25 +92,6 @@ async function fetchCmsContent(): Promise<Partial<CmsSiteContent> | null> {
   }
 }
 
-// tripsMenu[].destinations[].packages is placeholder seed data for lib/packages.ts's
-// synthetic package generator, not admin-managed content (see the site-content CMS
-// plan) — it's never sent by the CMS, so it always comes from the static default,
-// matched to the CMS-edited destination by position.
-function mergeTripsMenu(staticMenu: TripsCategory[], cmsMenu: CmsTripsCategory[] | undefined): TripsCategory[] {
-  if (!cmsMenu) return staticMenu;
-  return cmsMenu.map((cmsCategory) => {
-    const staticCategory = staticMenu.find((category) => category.key === cmsCategory.key);
-    const staticDestinations = staticCategory?.destinations ?? [];
-    return {
-      ...cmsCategory,
-      destinations: cmsCategory.destinations.map((destination, index) => ({
-        ...destination,
-        packages: staticDestinations[index]?.packages ?? [],
-      })),
-    };
-  });
-}
-
 export async function getSiteContent(): Promise<SiteContent> {
   const cms = await fetchCmsContent();
   if (!cms) return defaultSiteContent;
@@ -129,6 +99,6 @@ export async function getSiteContent(): Promise<SiteContent> {
   return {
     ...defaultSiteContent,
     ...cms,
-    tripsMenu: mergeTripsMenu(defaultSiteContent.tripsMenu, cms.tripsMenu),
+    tripsMenu: cms.tripsMenu ?? defaultSiteContent.tripsMenu,
   };
 }

@@ -76,9 +76,6 @@ function SiteHeader({ scrolled, menuOpen, onToggleMenu, onEnquire, solid }: Site
   };
 
   const packagesForCategory = (category: (typeof content.tripsMenu)[number]) => {
-    if (category.key !== 'nepal-tours') {
-      return category.destinations.flatMap((destination) => destination.packages);
-    }
     if (!apiPackages) return [];
     const destinationLabels = category.destinations.map((destination) => destination.label.toLowerCase());
     return apiPackages
@@ -126,7 +123,7 @@ function SiteHeader({ scrolled, menuOpen, onToggleMenu, onEnquire, solid }: Site
                     const activeCategoryData =
                       content.tripsMenu.find((category) => category.key === activeCategory) ?? content.tripsMenu[0];
                     const packages = packagesForCategory(activeCategoryData);
-                    const packagesLoading = activeCategoryData.key === 'nepal-tours' && apiPackages === null;
+                    const packagesLoading = apiPackages === null;
 
                     return (
                       <div className="trips-mega-inner">

@@ -20,6 +20,7 @@ type ApiPackageSummary = {
   title: string;
   destinations: string[];
   status: string;
+  category?: string;
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://happy-world-admin-backend-neon.vercel.app';
@@ -77,9 +78,12 @@ function SiteHeader({ scrolled, menuOpen, onToggleMenu, onEnquire, solid }: Site
 
   const packagesForCategory = (category: (typeof content.tripsMenu)[number]) => {
     if (!apiPackages) return [];
-    const destinationLabels = category.destinations.map((destination) => destination.label.toLowerCase());
+    // Match on the package's own category field, not destination-name overlap — two
+    // categories can legitimately share a destination label (e.g. Pokhara appears
+    // under both Nepal Tours and Trekking), which previously made every category show
+    // the same packages once any destination names overlapped.
     return apiPackages
-      .filter((pkg) => pkg.destinations.some((d) => destinationLabels.includes(d.toLowerCase())))
+      .filter((pkg) => (pkg.category ?? 'nepal-tours') === category.key)
       .map((pkg) => ({ name: pkg.title.trim() }));
   };
 

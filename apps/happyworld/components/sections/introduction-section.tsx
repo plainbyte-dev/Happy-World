@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import { useSiteContent } from '@/lib/site-content-context';
+import NepalDestinationsMap from './nepal-destinations-map';
 
 function IntroductionSection() {
   const content = useSiteContent();
@@ -16,6 +17,7 @@ function IntroductionSection() {
           <h2 className="section-title whitespace-pre-line" data-testid="text-intro-title">{content.introduction.title}</h2>
           <p className="body-large mt-8 max-w-[680px]" data-testid="text-intro-body">{content.introduction.body}</p>
           <a href="#enquiry" className="inline-link mt-10" data-testid="link-intro-enquire">Tell us what you are looking for <ArrowRight size={16} /></a>
+          <NepalDestinationsMap tripsMenu={content.tripsMenu} />
         </div>
       </div>
     </section>

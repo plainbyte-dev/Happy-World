@@ -15,6 +15,7 @@ export default function DestinationsPage() {
   const [lng, setLng] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [lookingUp, setLookingUp] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -44,6 +45,27 @@ export default function DestinationsPage() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showSuggestions]);
+
+  async function lookupCoordinates(destinationName: string) {
+    const trimmed = destinationName.trim();
+    if (!trimmed) return;
+    setLookingUp(true);
+    try {
+      const result = await api.get<{ lat: number; lng: number }>(
+        `/api/admin/destinations/geocode?name=${encodeURIComponent(trimmed)}`,
+      );
+      setLat(String(result.lat));
+      setLng(String(result.lng));
+      showToast('Coordinates found — double-check them before saving', 'success');
+    } catch (err) {
+      showToast(
+        err instanceof ApiRequestError ? err.message : 'Could not look up coordinates — enter them manually',
+        'error',
+      );
+    } finally {
+      setLookingUp(false);
+    }
+  }
 
   async function addDestination(destinationName: string, latValue: string, lngValue: string) {
     const trimmed = destinationName.trim();
@@ -134,6 +156,14 @@ export default function DestinationsPage() {
             max={180}
           />
           <button
+            type="button"
+            onClick={() => void lookupCoordinates(name)}
+            disabled={lookingUp || !name.trim()}
+            className="shrink-0 rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {lookingUp ? 'Looking up…' : 'Look up coordinates'}
+          </button>
+          <button
             type="submit"
             disabled={adding || !name.trim()}
             className="shrink-0 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
@@ -142,8 +172,10 @@ export default function DestinationsPage() {
           </button>
         </form>
         <p className="mt-1.5 text-xs text-slate-400">
-          Latitude/longitude are required so this destination can show as a pin on the public site&apos;s map. Look
-          them up on Google Maps (right-click a point → the coordinates are the first entry).
+          Latitude/longitude are required so this destination can show as a pin on the public site&apos;s map. Use
+          &ldquo;Look up coordinates&rdquo; to auto-fill them from the name (via OpenStreetMap), then double-check
+          before saving — or enter them manually from Google Maps (right-click a point → the coordinates are the
+          first entry).
         </p>
 
         {showSuggestions && (
@@ -160,6 +192,7 @@ export default function DestinationsPage() {
                   onClick={() => {
                     setName(district);
                     setShowSuggestions(false);
+                    void lookupCoordinates(district);
                   }}
                   className="block w-full px-3 py-1.5 text-left text-sm text-slate-700 hover:bg-slate-50"
                 >

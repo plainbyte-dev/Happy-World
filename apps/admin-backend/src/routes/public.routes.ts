@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { createContactEnquiry } from '../controllers/contact.controller';
+import { listDestinations } from '../controllers/destination.controller';
 import { getPublishedPackageById, listPublishedPackages } from '../controllers/package.controller';
 import { getPublicSiteContent } from '../controllers/siteContent.controller';
 import { validate } from '../middleware/validate';
@@ -12,6 +13,7 @@ const router = Router();
 router.get('/packages', asyncHandler(listPublishedPackages));
 router.get('/packages/:id', validateObjectId, asyncHandler(getPublishedPackageById));
 router.get('/site-content', asyncHandler(getPublicSiteContent));
+router.get('/destinations', asyncHandler(listDestinations));
 router.post('/contact', validate(contactInputSchema), asyncHandler(createContactEnquiry));
 
 export default router;

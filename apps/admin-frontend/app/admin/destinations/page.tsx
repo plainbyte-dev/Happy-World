@@ -11,6 +11,8 @@ export default function DestinationsPage() {
   const { showToast } = useToast();
   const [destinations, setDestinations] = useState<DestinationRecord[] | null>(null);
   const [name, setName] = useState('');
+  const [lat, setLat] = useState('');
+  const [lng, setLng] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [adding, setAdding] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -43,14 +45,22 @@ export default function DestinationsPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showSuggestions]);
 
-  async function addDestination(destinationName: string) {
+  async function addDestination(destinationName: string, latValue: string, lngValue: string) {
     const trimmed = destinationName.trim();
+    const latNum = Number(latValue);
+    const lngNum = Number(lngValue);
     if (!trimmed) return;
+    if (latValue.trim() === '' || lngValue.trim() === '' || Number.isNaN(latNum) || Number.isNaN(lngNum)) {
+      showToast('Enter a valid latitude and longitude — both are required so the destination can appear on the map', 'error');
+      return;
+    }
     setAdding(true);
     try {
-      const created = await api.post<DestinationRecord>('/api/admin/destinations', { name: trimmed });
+      const created = await api.post<DestinationRecord>('/api/admin/destinations', { name: trimmed, lat: latNum, lng: lngNum });
       setDestinations((prev) => [...(prev ?? []), created].sort((a, b) => a.name.localeCompare(b.name)));
       setName('');
+      setLat('');
+      setLng('');
       setShowSuggestions(false);
       showToast('Destination added', 'success');
     } catch (err) {
@@ -90,18 +100,38 @@ export default function DestinationsPage() {
         <form
           onSubmit={(event: FormEvent) => {
             event.preventDefault();
-            void addDestination(name);
+            void addDestination(name, lat, lng);
           }}
-          className="flex gap-3"
+          className="flex flex-wrap gap-3"
         >
           <input
-            className={inputClass}
+            className={`${inputClass} min-w-[220px] flex-1`}
             value={name}
             onChange={(event) => setName(event.target.value)}
             onFocus={() => setShowSuggestions(true)}
             placeholder="Search Nepal's 77 districts, or type your own"
             maxLength={60}
             autoComplete="off"
+          />
+          <input
+            className={`${inputClass} w-32`}
+            value={lat}
+            onChange={(event) => setLat(event.target.value)}
+            placeholder="Latitude"
+            type="number"
+            step="any"
+            min={-90}
+            max={90}
+          />
+          <input
+            className={`${inputClass} w-32`}
+            value={lng}
+            onChange={(event) => setLng(event.target.value)}
+            placeholder="Longitude"
+            type="number"
+            step="any"
+            min={-180}
+            max={180}
           />
           <button
             type="submit"
@@ -111,6 +141,10 @@ export default function DestinationsPage() {
             {adding ? 'Adding…' : '+ Add destination'}
           </button>
         </form>
+        <p className="mt-1.5 text-xs text-slate-400">
+          Latitude/longitude are required so this destination can show as a pin on the public site&apos;s map. Look
+          them up on Google Maps (right-click a point → the coordinates are the first entry).
+        </p>
 
         {showSuggestions && (
           <div className="absolute z-10 mt-1 max-h-64 w-full max-w-md overflow-y-auto rounded-md border border-slate-300 bg-white py-1 shadow-lg">
@@ -123,7 +157,10 @@ export default function DestinationsPage() {
                 <button
                   key={district}
                   type="button"
-                  onClick={() => void addDestination(district)}
+                  onClick={() => {
+                    setName(district);
+                    setShowSuggestions(false);
+                  }}
                   className="block w-full px-3 py-1.5 text-left text-sm text-slate-700 hover:bg-slate-50"
                 >
                   {district}
@@ -145,7 +182,16 @@ export default function DestinationsPage() {
           <ul className="divide-y divide-slate-100">
             {destinations.map((destination) => (
               <li key={destination._id} className="flex items-center justify-between px-4 py-3">
-                <span className="text-sm font-medium text-slate-900">{destination.name}</span>
+                <div>
+                  <span className="text-sm font-medium text-slate-900">{destination.name}</span>
+                  {destination.lat !== undefined && destination.lng !== undefined ? (
+                    <span className="ml-2 text-xs text-slate-400">
+                      {destination.lat.toFixed(4)}, {destination.lng.toFixed(4)}
+                    </span>
+                  ) : (
+                    <span className="ml-2 text-xs text-amber-600">No coordinates — won&apos;t show on the map</span>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={() => void handleDelete(destination._id, destination.name)}

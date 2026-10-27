@@ -1,12 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import AppImage from '@/components/ui/AppImage';
 import Map, { Marker, Popup, type MapRef } from 'react-map-gl/maplibre';
 import { setWorkerUrl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import destinationsData from '@/data/destinations.json';
 
 // maplibre-gl ships its tile-processing worker as a separate ESM chunk and
 // resolves its URL relative to its own bundled location by default, which
@@ -16,21 +14,25 @@ if (typeof window !== 'undefined') {
   setWorkerUrl('/maplibre-gl-worker.mjs');
 }
 
-type Category = 'trekking' | 'wildlife' | 'culture' | 'adventure';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://happy-world-admin-backend-neon.vercel.app';
+
+// What the backend's Destination model actually stores (apps/admin-backend/src/models/Destination.ts)
+// — just a name and, for destinations added since the map shipped, coordinates. There's no
+// description/image/category/tourUrl on this model, unlike the Package model, so the map's UI is
+// intentionally minimal to match: a name and a generic link to browse tours, nothing invented.
+type ApiDestination = {
+  _id: string;
+  name: string;
+  lat?: number;
+  lng?: number;
+};
 
 type Destination = {
   id: string;
   name: string;
-  country: string;
   lat: number;
   lng: number;
-  description: string;
-  image: string;
-  tourUrl: string;
-  category: Category;
 };
-
-const destinations = destinationsData as Destination[];
 
 // CARTO's free vector basemap — no API key required. Overridable via env if the
 // site ever wants a paid/branded style instead.
@@ -44,12 +46,21 @@ const NEPAL_VIEW = { longitude: 84.5, latitude: 28.2, zoom: 5.2, pitch: 0, beari
 const FLY_TO_ZOOM = 9;
 const FLY_TO_PITCH = 60;
 
-const CATEGORY_LABELS: Record<Category, string> = {
-  trekking: 'Trekking',
-  wildlife: 'Wildlife',
-  culture: 'Culture',
-  adventure: 'Adventure',
-};
+async function fetchDestinations(): Promise<Destination[]> {
+  try {
+    const res = await fetch(`${API_BASE}/api/destinations`, { next: { revalidate: 300 } });
+    if (!res.ok) return [];
+    const json = (await res.json()) as { success: boolean; data?: ApiDestination[] };
+    if (!json.success || !Array.isArray(json.data)) return [];
+    // Destinations added before lat/lng existed on the model won't have them —
+    // skip rather than plot a marker at (0, 0) or crash on a missing value.
+    return json.data
+      .filter((d): d is ApiDestination & { lat: number; lng: number } => typeof d.lat === 'number' && typeof d.lng === 'number')
+      .map((d) => ({ id: d._id, name: d.name, lat: d.lat, lng: d.lng }));
+  } catch {
+    return [];
+  }
+}
 
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
@@ -81,19 +92,19 @@ export default function DestinationMap() {
   const isTouch = useIsTouchDevice();
 
   const [mapReady, setMapReady] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
+  const [destinations, setDestinations] = useState<Destination[] | null>(null);
   const [tooltipId, setTooltipId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Destination | null>(null);
 
-  const categories = useMemo(() => {
-    const present = new Set(destinations.map((d) => d.category));
-    return (Object.keys(CATEGORY_LABELS) as Category[]).filter((c) => present.has(c));
+  useEffect(() => {
+    let cancelled = false;
+    fetchDestinations().then((result) => {
+      if (!cancelled) setDestinations(result);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
-
-  const visibleDestinations = useMemo(
-    () => (activeCategory === 'all' ? destinations : destinations.filter((d) => d.category === activeCategory)),
-    [activeCategory],
-  );
 
   const flyDuration = reducedMotion ? 0 : 3000;
 
@@ -165,26 +176,14 @@ export default function DestinationMap() {
 
   return (
     <div data-testid="destination-map-root">
-      <div className="mb-5 flex flex-wrap gap-2" role="group" aria-label="Filter destinations by category">
-        <button
-          type="button"
-          onClick={() => setActiveCategory('all')}
-          className={`map-filter-chip ${activeCategory === 'all' ? 'map-filter-chip-active' : ''}`}
-          aria-pressed={activeCategory === 'all'}
-        >
-          All
-        </button>
-        {categories.map((category) => (
-          <button
-            key={category}
-            type="button"
-            onClick={() => setActiveCategory(category)}
-            className={`map-filter-chip ${activeCategory === category ? 'map-filter-chip-active' : ''}`}
-            aria-pressed={activeCategory === category}
-          >
-            {CATEGORY_LABELS[category]}
-          </button>
-        ))}
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-[#56607d]">
+          {destinations === null
+            ? 'Loading destinations…'
+            : destinations.length === 0
+              ? 'No destinations with coordinates yet.'
+              : `${destinations.length} destination${destinations.length === 1 ? '' : 's'}`}
+        </p>
         <button type="button" onClick={resetView} className="map-filter-chip map-filter-chip-reset" data-testid="button-reset-map-view">
           Reset view
         </button>
@@ -200,13 +199,8 @@ export default function DestinationMap() {
           attributionControl={{ compact: true }}
         >
           {mapReady &&
-            visibleDestinations.map((destination) => (
-              <Marker
-                key={destination.id}
-                longitude={destination.lng}
-                latitude={destination.lat}
-                anchor="bottom"
-              >
+            destinations?.map((destination) => (
+              <Marker key={destination.id} longitude={destination.lng} latitude={destination.lat} anchor="bottom">
                 <div
                   role="button"
                   tabIndex={0}
@@ -244,13 +238,9 @@ export default function DestinationMap() {
               className="destination-popup"
             >
               <div className="destination-popup-card">
-                <div className="relative h-32 w-full overflow-hidden rounded-t-xl">
-                  <AppImage src={selected.image} alt={selected.name} fill className="object-cover" />
-                </div>
                 <div className="p-4">
                   <p className="font-serif text-base font-bold text-[#1a2650]">{selected.name}</p>
-                  <p className="mt-1 text-xs leading-relaxed text-[#56607d]">{selected.description}</p>
-                  <Link href={selected.tourUrl} className="destination-popup-link">
+                  <Link href="/tour-types" className="destination-popup-link">
                     View tours
                   </Link>
                 </div>

@@ -14,6 +14,10 @@ export type PackageListItem = Pick<
 export interface DestinationRecord {
   _id: string;
   name: string;
+  // Optional because destinations created before these fields existed won't have
+  // them set — the backend doesn't backfill old documents.
+  lat?: number;
+  lng?: number;
   createdAt: string;
   updatedAt: string;
 }

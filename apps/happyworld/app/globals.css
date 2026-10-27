@@ -581,3 +581,8 @@
 .destination-popup .maplibregl-popup-close-button { font-size: 18px; color: #fff; top: 6px; right: 8px; text-shadow: 0 1px 3px rgba(0,0,0,.4); }
 .destination-popup-card { width: 260px; }
 .destination-popup-link { margin-top: 12px; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #b8860b; border-bottom: 1px solid #b8860b; padding-bottom: 1px; }
+
+/* Recolors the real (Wikimedia Commons, CC0) district map's original rainbow
+   palette to match the site's navy tone — the source SVG itself is untouched
+   except for making its background rect transparent. */
+.intro-nepal-map { filter: grayscale(100%) brightness(0.3) sepia(100%) hue-rotate(180deg) saturate(300%); }

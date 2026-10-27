@@ -42,7 +42,7 @@ const MAP_STYLE =
 // AWS Open Data's Terrarium-encoded elevation tiles — also free, no API key.
 const TERRAIN_TILES = ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'];
 
-const NEPAL_VIEW = { longitude: 84.5, latitude: 28.2, zoom: 5.2, pitch: 0, bearing: 0 };
+const NEPAL_VIEW = { longitude: 84.1, latitude: 28.3, zoom: 6.4, pitch: 0, bearing: 0 };
 const FLY_TO_ZOOM = 9;
 const FLY_TO_PITCH = 60;
 

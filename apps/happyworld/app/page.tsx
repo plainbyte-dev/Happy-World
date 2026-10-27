@@ -6,6 +6,7 @@ import SiteHeader from '@/components/sections/site-header';
 import MobileMenu from '@/components/sections/mobile-menu';
 import HeroSection from '@/components/sections/hero-section';
 import IntroductionSection from '@/components/sections/introduction-section';
+import ExploreDestinationsSection from '@/components/sections/explore-destinations-section';
 import JourneysSection from '@/components/sections/journeys-section';
 import PackageGridSection from '@/components/sections/package-grid-section';
 import HowWeTravelSection from '@/components/sections/how-we-travel-section';
@@ -74,6 +75,7 @@ function Home() {
         onMouseLeave={() => setPaused(false)}
       />
       <IntroductionSection />
+      <ExploreDestinationsSection />
       <JourneysSection />
       <PackageGridSection />
       <HowWeTravelSection />

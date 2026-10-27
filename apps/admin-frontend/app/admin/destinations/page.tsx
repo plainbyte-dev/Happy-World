@@ -17,6 +17,11 @@ export default function DestinationsPage() {
   const [adding, setAdding] = useState(false);
   const [lookingUp, setLookingUp] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editLat, setEditLat] = useState('');
+  const [editLng, setEditLng] = useState('');
+  const [editLookingUp, setEditLookingUp] = useState(false);
+  const [savingEdit, setSavingEdit] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   async function load() {
@@ -46,25 +51,32 @@ export default function DestinationsPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showSuggestions]);
 
-  async function lookupCoordinates(destinationName: string) {
+  async function fetchCoordinates(destinationName: string): Promise<{ lat: number; lng: number } | null> {
     const trimmed = destinationName.trim();
-    if (!trimmed) return;
-    setLookingUp(true);
+    if (!trimmed) return null;
     try {
       const result = await api.get<{ lat: number; lng: number }>(
         `/api/admin/destinations/geocode?name=${encodeURIComponent(trimmed)}`,
       );
-      setLat(String(result.lat));
-      setLng(String(result.lng));
       showToast('Coordinates found — double-check them before saving', 'success');
+      return result;
     } catch (err) {
       showToast(
         err instanceof ApiRequestError ? err.message : 'Could not look up coordinates — enter them manually',
         'error',
       );
-    } finally {
-      setLookingUp(false);
+      return null;
     }
+  }
+
+  async function lookupCoordinates(destinationName: string) {
+    setLookingUp(true);
+    const result = await fetchCoordinates(destinationName);
+    if (result) {
+      setLat(String(result.lat));
+      setLng(String(result.lng));
+    }
+    setLookingUp(false);
   }
 
   async function addDestination(destinationName: string, latValue: string, lngValue: string) {
@@ -89,6 +101,52 @@ export default function DestinationsPage() {
       showToast(err instanceof ApiRequestError ? err.message : 'Failed to add destination', 'error');
     } finally {
       setAdding(false);
+    }
+  }
+
+  function startEdit(destination: DestinationRecord) {
+    setEditingId(destination._id);
+    setEditLat(destination.lat !== undefined ? String(destination.lat) : '');
+    setEditLng(destination.lng !== undefined ? String(destination.lng) : '');
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditLat('');
+    setEditLng('');
+  }
+
+  async function lookupEditCoordinates(destinationName: string) {
+    setEditLookingUp(true);
+    const result = await fetchCoordinates(destinationName);
+    if (result) {
+      setEditLat(String(result.lat));
+      setEditLng(String(result.lng));
+    }
+    setEditLookingUp(false);
+  }
+
+  async function saveEdit(destination: DestinationRecord) {
+    const latNum = Number(editLat);
+    const lngNum = Number(editLng);
+    if (editLat.trim() === '' || editLng.trim() === '' || Number.isNaN(latNum) || Number.isNaN(lngNum)) {
+      showToast('Enter a valid latitude and longitude', 'error');
+      return;
+    }
+    setSavingEdit(true);
+    try {
+      const updated = await api.patch<DestinationRecord>(`/api/admin/destinations/${destination._id}`, {
+        name: destination.name,
+        lat: latNum,
+        lng: lngNum,
+      });
+      setDestinations((prev) => prev?.map((d) => (d._id === destination._id ? updated : d)) ?? null);
+      cancelEdit();
+      showToast('Coordinates updated', 'success');
+    } catch (err) {
+      showToast(err instanceof ApiRequestError ? err.message : 'Failed to update coordinates', 'error');
+    } finally {
+      setSavingEdit(false);
     }
   }
 
@@ -213,28 +271,87 @@ export default function DestinationsPage() {
       ) : (
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
           <ul className="divide-y divide-slate-100">
-            {destinations.map((destination) => (
-              <li key={destination._id} className="flex items-center justify-between px-4 py-3">
-                <div>
+            {destinations.map((destination) =>
+              editingId === destination._id ? (
+                <li key={destination._id} className="flex flex-wrap items-center gap-3 px-4 py-3">
                   <span className="text-sm font-medium text-slate-900">{destination.name}</span>
-                  {destination.lat !== undefined && destination.lng !== undefined ? (
-                    <span className="ml-2 text-xs text-slate-400">
-                      {destination.lat.toFixed(4)}, {destination.lng.toFixed(4)}
-                    </span>
-                  ) : (
-                    <span className="ml-2 text-xs text-amber-600">No coordinates — won&apos;t show on the map</span>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => void handleDelete(destination._id, destination.name)}
-                  disabled={deletingId === destination._id}
-                  className="text-sm font-medium text-red-600 hover:text-red-700 disabled:opacity-50"
-                >
-                  {deletingId === destination._id ? 'Deleting…' : 'Delete'}
-                </button>
-              </li>
-            ))}
+                  <input
+                    className={`${inputClass} w-32`}
+                    value={editLat}
+                    onChange={(event) => setEditLat(event.target.value)}
+                    placeholder="Latitude"
+                    type="number"
+                    step="any"
+                    min={-90}
+                    max={90}
+                  />
+                  <input
+                    className={`${inputClass} w-32`}
+                    value={editLng}
+                    onChange={(event) => setEditLng(event.target.value)}
+                    placeholder="Longitude"
+                    type="number"
+                    step="any"
+                    min={-180}
+                    max={180}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void lookupEditCoordinates(destination.name)}
+                    disabled={editLookingUp}
+                    className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    {editLookingUp ? 'Looking up…' : 'Look up'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void saveEdit(destination)}
+                    disabled={savingEdit}
+                    className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800 disabled:opacity-50"
+                  >
+                    {savingEdit ? 'Saving…' : 'Save'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    disabled={savingEdit}
+                    className="text-xs font-medium text-slate-500 hover:text-slate-700 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                </li>
+              ) : (
+                <li key={destination._id} className="flex items-center justify-between px-4 py-3">
+                  <div>
+                    <span className="text-sm font-medium text-slate-900">{destination.name}</span>
+                    {destination.lat !== undefined && destination.lng !== undefined ? (
+                      <span className="ml-2 text-xs text-slate-400">
+                        {destination.lat.toFixed(4)}, {destination.lng.toFixed(4)}
+                      </span>
+                    ) : (
+                      <span className="ml-2 text-xs text-amber-600">No coordinates — won&apos;t show on the map</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={() => startEdit(destination)}
+                      className="text-sm font-medium text-slate-700 hover:text-slate-900"
+                    >
+                      {destination.lat !== undefined ? 'Edit coordinates' : 'Add coordinates'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void handleDelete(destination._id, destination.name)}
+                      disabled={deletingId === destination._id}
+                      className="text-sm font-medium text-red-600 hover:text-red-700 disabled:opacity-50"
+                    >
+                      {deletingId === destination._id ? 'Deleting…' : 'Delete'}
+                    </button>
+                  </div>
+                </li>
+              ),
+            )}
           </ul>
         </div>
       )}

@@ -17,6 +17,23 @@ export async function listDestinations(_req: Request, res: Response): Promise<vo
   sendSuccess(res, destinations);
 }
 
+export async function updateDestination(req: Request, res: Response): Promise<void> {
+  if (req.body.name) {
+    const existing = await Destination.findOne({ name: req.body.name, _id: { $ne: req.params.id } });
+    if (existing) {
+      throw new ApiError(409, 'A destination with this name already exists', { name: 'This destination already exists' });
+    }
+  }
+  const destination = await Destination.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+  if (!destination) {
+    throw new ApiError(404, 'Destination not found');
+  }
+  sendSuccess(res, destination);
+}
+
 export async function deleteDestination(req: Request, res: Response): Promise<void> {
   const destination = await Destination.findByIdAndDelete(req.params.id);
   if (!destination) {

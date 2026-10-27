@@ -168,25 +168,6 @@ function altitudeProfileForPackage(days: number, base: number, peak: number, cat
   });
 }
 
-// Real, verified-on-theme Nepal/Himalaya photography — the only images used for landscape
-// placeholders, so the gallery/thumbnails never show unrelated stock content (resorts, traffic, etc).
-// Random third-party placeholder services (picsum.photos and similar) return arbitrary stock photos
-// with no thematic control, which produced exactly that problem — do not reintroduce them here.
-const PHOTO_POOL: { src: string; alt: string; categories: string[] }[] = [
-  { src: '/content-images/image1.png', alt: 'Annapurna Base Camp trail sign at sunrise', categories: ['trekking'] },
-  { src: 'https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg?auto=compress&cs=tinysrgb&w=1200', alt: 'Trekker on a mountain trail', categories: ['trekking'] },
-  { src: '/content-images/image2.png', alt: 'Pilgrims on the Kailash parikrama at dawn', categories: ['kailash'] },
-  { src: '/content-images/Kailash.png', alt: 'Mount Kailash', categories: ['kailash'] },
-  { src: '/content-images/image3.png', alt: 'Kathmandu Valley heritage temple', categories: ['nepal-tours'] },
-  { src: '/content-images/NepalTour.png', alt: 'Boudhanath Stupa at sunset', categories: ['nepal-tours'] },
-];
-
-function poolImage(seed: number, categoryKey: string): { src: string; alt: string } {
-  const ordered = [...PHOTO_POOL].sort((a, b) => Number(b.categories.includes(categoryKey)) - Number(a.categories.includes(categoryKey)));
-  const pick = ordered[seed % ordered.length]!;
-  return { src: pick.src, alt: pick.alt };
-}
-
 // Avatars use DiceBear's deterministic SVG generator instead of stock photos — a guide or reviewer
 // "photo" placeholder should never risk rendering unrelated scenery (or a stranger's face).
 function avatarImage(seed: string): string {
@@ -341,8 +322,10 @@ function resolveApiImage(path: string): string {
   return path.startsWith('http') ? path : `${API_BASE}${path}`;
 }
 
-const MIN_GALLERY_IMAGES = 6;
-
+// Only ever real, admin-uploaded images — no stock-photo padding. A package's
+// coverImage is a required field (always real), so it's a reasonable single-image
+// fallback when no other gallery/itinerary images exist; GallerySection itself
+// already hides entirely if this still comes back empty.
 function galleryForApiPackage(pkg: ApiPackage, flat: FlatPackage, heroImage: string): GalleryImage[] {
   const seen = new Set<string>();
   const real: GalleryImage[] = [];
@@ -364,15 +347,7 @@ function galleryForApiPackage(pkg: ApiPackage, flat: FlatPackage, heroImage: str
     real.push({ src: heroImage, alt: flat.name });
   }
 
-  if (real.length >= MIN_GALLERY_IMAGES) return real;
-
-  const seed = hashString(flat.name);
-  const placeholders: GalleryImage[] = [];
-  for (let i = 0; real.length + placeholders.length < MIN_GALLERY_IMAGES; i += 1) {
-    const image = poolImage(seed + i, flat.categoryKey);
-    placeholders.push({ src: image.src, alt: image.alt });
-  }
-  return [...real, ...placeholders];
+  return real;
 }
 
 function mealsToString(meals: ApiMeals): string {
@@ -418,7 +393,9 @@ function generateDetailFromApi(pkg: ApiPackage, tripsMenu: SiteContent['tripsMen
       meals: mealsToString(day.meals),
       stay: day.accommodation.trim() || '—',
       transport: day.transportation.trim() || '—',
-      image: realImage ? { src: resolveApiImage(realImage), alt: day.title || flat.name } : poolImage(hashString(flat.name) + day.day, flat.categoryKey),
+      // No stock-photo fallback here — ItenarySection already falls back to the
+      // package's real heroImage when a day has no image of its own.
+      image: realImage ? { src: resolveApiImage(realImage), alt: day.title || flat.name } : undefined,
       keyActivities: day.keyActivities.filter(Boolean),
     };
   });

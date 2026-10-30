@@ -27,6 +27,10 @@ export function TripsCategoryCard({ control, register, errors, categoryIndex, ca
     <SectionCard title={categoryKey} description="The category key is fixed — it's also used to tag packages.">
       {/* key is not user-editable, but must still round-trip on save */}
       <input type="hidden" {...register(`value.${categoryIndex}.key`)} />
+      {/* href is derived from key (/tour-types/{key}) and not independently editable — the
+          dynamic route matches on key, so a hand-typed href that drifts from it 404s every
+          link to this category. The backend also re-derives it on save regardless. */}
+      <input type="hidden" {...register(`value.${categoryIndex}.href`)} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
@@ -36,8 +40,7 @@ export function TripsCategoryCard({ control, register, errors, categoryIndex, ca
         </div>
         <div>
           <label className={labelClass}>Link</label>
-          <input className={inputClass} {...register(`value.${categoryIndex}.href`)} />
-          <FieldError message={categoryErrors?.href?.message} />
+          <p className={`${inputClass} bg-slate-50 text-slate-500`}>/tour-types/{categoryKey}</p>
         </div>
       </div>
 

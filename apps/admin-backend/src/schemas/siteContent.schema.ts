@@ -12,14 +12,20 @@ const destinationSchema = z.object({
   blurb: z.string().min(1),
 });
 
-const tripsCategorySchema = z.object({
-  key: z.enum(CATEGORY_VALUES),
-  label: z.string().min(1),
-  description: z.string().min(1),
-  href: z.string().min(1),
-  image: z.string().min(1),
-  destinations: z.array(destinationSchema).default([]),
-});
+const tripsCategorySchema = z
+  .object({
+    key: z.enum(CATEGORY_VALUES),
+    label: z.string().min(1),
+    description: z.string().min(1),
+    href: z.string().min(1),
+    image: z.string().min(1),
+    destinations: z.array(destinationSchema).default([]),
+  })
+  // href must always point at this category's own /tour-types/[category] route — the
+  // dynamic route matches on `key`, not on whatever href text was typed, so an href that
+  // drifts from the key silently 404s every link to that category. Force it here rather
+  // than trusting client input, so it can never drift again regardless of what sends it.
+  .transform((category) => ({ ...category, href: `/tour-types/${category.key}` }));
 
 const heroSlideSchema = z.object({
   eyebrow: z.string().min(1),

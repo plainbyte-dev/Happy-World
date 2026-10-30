@@ -16,6 +16,9 @@ const tripsCategorySchema = z.object({
   key: z.enum(CATEGORY_VALUES),
   label: z.string().min(1, 'Label is required'),
   description: z.string().min(1, 'Description is required'),
+  // Not directly user-editable (see TripsCategoryCard) — the backend forces this to
+  // `/tour-types/${key}` on save regardless of what's submitted, since the dynamic
+  // route matches on `key` and a drifted href silently 404s every link to it.
   href: z.string().min(1, 'Link is required'),
   image: z.string().min(1, 'Image is required'),
   destinations: z.array(destinationSchema).default([]),

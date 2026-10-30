@@ -15,15 +15,15 @@ function IntroductionSection() {
           <img
             src="/content-images/nepal-districts-map.svg"
             alt="Map of Nepal's districts"
-            className="intro-nepal-map mt-10 w-full max-w-[320px]"
+            className="intro-nepal-map mt-10 w-full max-w-[520px]"
             data-testid="img-intro-nepal-map"
           />
-          <p className="mt-3 text-[10px] text-[#9aa3bd]">Map data: Wikimedia Commons (CC0)</p>
+         
         </div>
         <div>
           <h2 className="section-title whitespace-pre-line" data-testid="text-intro-title">{content.introduction.title}</h2>
           <p className="body-large mt-8 max-w-[680px]" data-testid="text-intro-body">{content.introduction.body}</p>
-          <a href="#enquiry" className="inline-link mt-10" data-testid="link-intro-enquire">Tell us what you are looking for <ArrowRight size={16} /></a>
+          <a href="/contact" className="inline-link mt-10" data-testid="link-intro-enquire">Tell us what you are looking for <ArrowRight size={16} /></a>
         </div>
       </div>
     </section>

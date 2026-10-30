@@ -4,7 +4,7 @@ import { useState } from 'react';
 import type { MonthRating } from '@/lib/packages';
 
 type WhenToVisitProps = {
-  bestTime: { month: string; rating: MonthRating }[];
+  bestTime: { month: string; rating: MonthRating; reason?: string }[];
 };
 
 const ratingConfig: Record<MonthRating, { label: string; color: string; bg: string; dot: string; note: string }> = {
@@ -83,7 +83,7 @@ export default function WhenToVisit({ bestTime }: WhenToVisitProps) {
           <h3 className="font-serif text-2xl font-bold text-foreground">{selected.month}</h3>
           <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest border ${cfg.bg} ${cfg.color}`}>{cfg.label}</span>
         </div>
-        <p className="text-foreground/70 text-sm leading-relaxed">{cfg.note}</p>
+        <p className="text-foreground/70 text-sm leading-relaxed">{selected.reason || cfg.note}</p>
       </div>
 
       {/* Legend */}

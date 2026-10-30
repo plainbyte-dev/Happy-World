@@ -15,11 +15,11 @@ const pokharaPackage: PackageInput = {
   destinations: ['Pokhara'],
   duration: '5-7',
   bestTimeToVisit: [
-    { month: 'October', rating: 'best' },
-    { month: 'November', rating: 'best' },
-    { month: 'March', rating: 'normal' },
-    { month: 'April', rating: 'normal' },
-    { month: 'July', rating: 'average' },
+    { month: 'October', rating: 'best', reason: '' },
+    { month: 'November', rating: 'best', reason: '' },
+    { month: 'March', rating: 'normal', reason: '' },
+    { month: 'April', rating: 'normal', reason: '' },
+    { month: 'July', rating: 'average', reason: '' },
   ],
   description:
     'A relaxed six-day escape to Pokhara combining lakeside leisure, a sunrise hike over the Annapurna range, and cultural stops around the valley. Ideal for travellers who want mountain views without a multi-day trek.',
@@ -107,14 +107,6 @@ const pokharaPackage: PackageInput = {
     photo: 'https://res.cloudinary.com/productionappfreelance/image/upload/tours-travels/guides/bikash-gurung.jpg',
     bio: 'Pokhara-based trekking guide with 12 years of experience leading Annapurna region tours.',
   },
-  testimonials: [
-    {
-      name: 'Emma Clarke',
-      rating: 5,
-      quote: 'The Sarangkot sunrise alone was worth the trip. Bikash was knowledgeable and easygoing.',
-      photo: '',
-    },
-  ],
   faqs: [
     {
       question: 'Is this trip suitable for travellers with limited fitness?',
@@ -135,9 +127,9 @@ const chitwanPackage: PackageInput = {
   destinations: ['Chitwan'],
   duration: '3-4',
   bestTimeToVisit: [
-    { month: 'October', rating: 'best' },
-    { month: 'January', rating: 'normal' },
-    { month: 'February', rating: 'normal' },
+    { month: 'October', rating: 'best', reason: '' },
+    { month: 'January', rating: 'normal', reason: '' },
+    { month: 'February', rating: 'normal', reason: '' },
   ],
   description:
     'A compact three-day jungle safari in Chitwan National Park featuring canoe rides, wildlife tracking, and an evening Tharu cultural show.',
@@ -195,14 +187,6 @@ const chitwanPackage: PackageInput = {
     photo: 'https://res.cloudinary.com/productionappfreelance/image/upload/tours-travels/guides/rajan-chaudhary.jpg',
     bio: 'Local Tharu naturalist guide from Sauraha with a decade of wildlife-tracking experience in Chitwan National Park.',
   },
-  testimonials: [
-    {
-      name: 'Daniel Fischer',
-      rating: 5,
-      quote: 'We spotted a one-horned rhino on the very first safari. Rajan knew exactly where to look.',
-      photo: '',
-    },
-  ],
   faqs: [
     {
       question: 'What wildlife can we realistically expect to see?',
@@ -223,10 +207,10 @@ const kathmanduLumbiniPackage: PackageInput = {
   destinations: ['Kathmandu', 'Lumbini'],
   duration: '8-10',
   bestTimeToVisit: [
-    { month: 'September', rating: 'best' },
-    { month: 'October', rating: 'best' },
-    { month: 'November', rating: 'normal' },
-    { month: 'March', rating: 'normal' },
+    { month: 'September', rating: 'best', reason: '' },
+    { month: 'October', rating: 'best', reason: '' },
+    { month: 'November', rating: 'normal', reason: '' },
+    { month: 'March', rating: 'normal', reason: '' },
   ],
   description:
     'An eight-day journey through Kathmandu Valley\'s UNESCO heritage sites followed by a peaceful pilgrimage to Lumbini, the birthplace of Lord Buddha, with monasteries and gardens along the way.',
@@ -334,14 +318,6 @@ const kathmanduLumbiniPackage: PackageInput = {
     photo: 'https://res.cloudinary.com/productionappfreelance/image/upload/tours-travels/guides/sunita-shrestha.jpg',
     bio: 'Kathmandu-based heritage and pilgrimage guide specializing in Newari architecture and Buddhist history.',
   },
-  testimonials: [
-    {
-      name: 'Marco Rossi',
-      rating: 5,
-      quote: 'Sunita brought the Durbar Squares to life with stories you would never find in a guidebook. Lumbini was deeply moving.',
-      photo: '',
-    },
-  ],
   faqs: [
     {
       question: 'How much walking is involved in the heritage sites?',

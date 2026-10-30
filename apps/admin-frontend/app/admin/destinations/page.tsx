@@ -13,6 +13,7 @@ export default function DestinationsPage() {
   const [name, setName] = useState('');
   const [lat, setLat] = useState('');
   const [lng, setLng] = useState('');
+  const [description, setDescription] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [adding, setAdding] = useState(false);
   const [lookingUp, setLookingUp] = useState(false);
@@ -20,6 +21,7 @@ export default function DestinationsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLat, setEditLat] = useState('');
   const [editLng, setEditLng] = useState('');
+  const [editDescription, setEditDescription] = useState('');
   const [editLookingUp, setEditLookingUp] = useState(false);
   const [savingEdit, setSavingEdit] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -79,7 +81,7 @@ export default function DestinationsPage() {
     setLookingUp(false);
   }
 
-  async function addDestination(destinationName: string, latValue: string, lngValue: string) {
+  async function addDestination(destinationName: string, latValue: string, lngValue: string, descriptionValue: string) {
     const trimmed = destinationName.trim();
     const latNum = Number(latValue);
     const lngNum = Number(lngValue);
@@ -90,11 +92,17 @@ export default function DestinationsPage() {
     }
     setAdding(true);
     try {
-      const created = await api.post<DestinationRecord>('/api/admin/destinations', { name: trimmed, lat: latNum, lng: lngNum });
+      const created = await api.post<DestinationRecord>('/api/admin/destinations', {
+        name: trimmed,
+        lat: latNum,
+        lng: lngNum,
+        description: descriptionValue.trim(),
+      });
       setDestinations((prev) => [...(prev ?? []), created].sort((a, b) => a.name.localeCompare(b.name)));
       setName('');
       setLat('');
       setLng('');
+      setDescription('');
       setShowSuggestions(false);
       showToast('Destination added', 'success');
     } catch (err) {
@@ -108,12 +116,14 @@ export default function DestinationsPage() {
     setEditingId(destination._id);
     setEditLat(destination.lat !== undefined ? String(destination.lat) : '');
     setEditLng(destination.lng !== undefined ? String(destination.lng) : '');
+    setEditDescription(destination.description ?? '');
   }
 
   function cancelEdit() {
     setEditingId(null);
     setEditLat('');
     setEditLng('');
+    setEditDescription('');
   }
 
   async function lookupEditCoordinates(destinationName: string) {
@@ -139,6 +149,7 @@ export default function DestinationsPage() {
         name: destination.name,
         lat: latNum,
         lng: lngNum,
+        description: editDescription.trim(),
       });
       setDestinations((prev) => prev?.map((d) => (d._id === destination._id ? updated : d)) ?? null);
       cancelEdit();
@@ -180,7 +191,7 @@ export default function DestinationsPage() {
         <form
           onSubmit={(event: FormEvent) => {
             event.preventDefault();
-            void addDestination(name, lat, lng);
+            void addDestination(name, lat, lng, description);
           }}
           className="flex flex-wrap gap-3"
         >
@@ -212,6 +223,13 @@ export default function DestinationsPage() {
             step="any"
             min={-180}
             max={180}
+          />
+          <input
+            className={`${inputClass} min-w-[260px] flex-1`}
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder="Description (optional — shown on the public map)"
+            maxLength={400}
           />
           <button
             type="button"
@@ -295,6 +313,13 @@ export default function DestinationsPage() {
                     min={-180}
                     max={180}
                   />
+                  <input
+                    className={`${inputClass} min-w-[220px] flex-1`}
+                    value={editDescription}
+                    onChange={(event) => setEditDescription(event.target.value)}
+                    placeholder="Description (optional)"
+                    maxLength={400}
+                  />
                   <button
                     type="button"
                     onClick={() => void lookupEditCoordinates(destination.name)}
@@ -331,6 +356,9 @@ export default function DestinationsPage() {
                     ) : (
                       <span className="ml-2 text-xs text-amber-600">No coordinates — won&apos;t show on the map</span>
                     )}
+                    {destination.description ? (
+                      <p className="mt-0.5 max-w-md text-xs text-slate-500">{destination.description}</p>
+                    ) : null}
                   </div>
                   <div className="flex items-center gap-4">
                     <button

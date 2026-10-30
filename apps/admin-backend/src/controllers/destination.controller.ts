@@ -55,8 +55,10 @@ export async function geocodeDestination(req: Request, res: Response): Promise<v
     throw new ApiError(400, 'A destination name is required');
   }
 
+  // No forced country suffix — destinations now span Nepal and Tibet/China,
+  // so biasing every lookup toward Nepal would break geocoding for the latter.
   const url = `https://nominatim.openstreetmap.org/search?${new URLSearchParams({
-    q: `${name}, Nepal`,
+    q: name,
     format: 'json',
     limit: '1',
   })}`;

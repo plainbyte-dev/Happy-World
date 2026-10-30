@@ -13,6 +13,7 @@ const bestTimeToVisitEntrySchema = new Schema(
   {
     month: { type: String, enum: MONTH_VALUES, required: true },
     rating: { type: String, enum: RATING_VALUES, required: true },
+    reason: { type: String, default: '' },
   },
   { _id: false },
 );
@@ -59,16 +60,6 @@ const guideSchema = new Schema(
   { _id: false },
 );
 
-const testimonialSchema = new Schema(
-  {
-    name: { type: String, required: true },
-    rating: { type: Number, min: 1, max: 5, required: true },
-    quote: { type: String, required: true },
-    photo: { type: String, default: '' },
-  },
-  { _id: false },
-);
-
 const faqSchema = new Schema(
   {
     question: { type: String, required: true },
@@ -97,7 +88,6 @@ const packageSchema = new Schema(
     costExcludes: { type: [String], default: [] },
     heroVideo: { type: String, default: '' },
     guide: { type: guideSchema },
-    testimonials: { type: [testimonialSchema], default: [] },
     faqs: { type: [faqSchema], default: [] },
   },
   { timestamps: true },

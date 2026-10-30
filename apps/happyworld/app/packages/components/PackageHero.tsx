@@ -33,9 +33,6 @@ export default function PackageHero({ detail }: PackageHeroProps) {
     return () => timers.forEach(clearTimeout);
   }, []);
 
-  const reviewCount = detail.testimonials.length;
-  const avgRating = reviewCount > 0 ? detail.testimonials.reduce((sum, t) => sum + t.rating, 0) / reviewCount : 5;
-
   return (
     <section className="relative min-h-[85vh] flex flex-col justify-end overflow-hidden bg-white">
       <AppImage src={detail.heroImage} alt={detail.name} fill priority className="object-cover" sizes="100vw" />
@@ -65,13 +62,6 @@ export default function PackageHero({ detail }: PackageHeroProps) {
         </h1>
 
         <div ref={metaRef} className="flex flex-wrap items-center gap-6">
-          <div className="flex items-center gap-2">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <Icon key={s} name="StarIcon" size={16} variant="solid" className="text-primary" />
-            ))}
-            <span className="text-sm font-bold text-white ml-1">{avgRating.toFixed(1)}</span>
-            <span className="text-sm text-white/60">({reviewCount} reviews)</span>
-          </div>
           <div className="flex items-center gap-2 text-white/70 text-sm">
             <Icon name="MapPinIcon" size={16} className="text-primary" />
             {detail.destinationLabel}

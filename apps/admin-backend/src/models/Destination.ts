@@ -9,6 +9,7 @@ const destinationSchema = new Schema(
     // of this data must treat lat/lng as possibly absent, not assume it's always set.
     lat: { type: Number, required: true, min: -90, max: 90 },
     lng: { type: Number, required: true, min: -180, max: 180 },
+    description: { type: String, default: '', maxlength: 400, trim: true },
   },
   { timestamps: true },
 );

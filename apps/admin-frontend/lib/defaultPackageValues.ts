@@ -40,7 +40,6 @@ export function defaultPackageValues(): PackageInput {
     costExcludes: [],
     heroVideo: '',
     guide: undefined,
-    testimonials: [],
     faqs: [],
   };
 }

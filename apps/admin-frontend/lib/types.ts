@@ -18,6 +18,7 @@ export interface DestinationRecord {
   // them set — the backend doesn't backfill old documents.
   lat?: number;
   lng?: number;
+  description?: string;
   createdAt: string;
   updatedAt: string;
 }

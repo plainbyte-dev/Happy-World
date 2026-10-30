@@ -19,7 +19,7 @@ export const MONTH_VALUES = [
   'December',
 ] as const;
 
-export const RATING_VALUES = ['best', 'normal', 'average'] as const;
+export const RATING_VALUES = ['best', 'normal', 'average', 'avoid'] as const;
 
 export const CURRENCY_VALUES = ['NPR', 'USD'] as const;
 
@@ -44,22 +44,26 @@ const optionalDifficultySchema = z.preprocess(
   z.enum(DIFFICULTY_VALUES).optional(),
 );
 
-const testimonialSchema = z.object({
-  name: z.string().min(1),
-  rating: z.number().int().min(1).max(5),
-  quote: z.string().min(1),
-  photo: z.string().default(''),
-});
-
 const faqSchema = z.object({
   question: z.string().min(1),
   answer: z.string().min(1),
 });
 
-const bestTimeToVisitEntrySchema = z.object({
-  month: z.enum(MONTH_VALUES),
-  rating: z.enum(RATING_VALUES),
-});
+const bestTimeToVisitEntrySchema = z
+  .object({
+    month: z.enum(MONTH_VALUES),
+    rating: z.enum(RATING_VALUES),
+    reason: z.string().trim().max(140, 'Reason must be at most 140 characters').default(''),
+  })
+  .superRefine((entry, ctx) => {
+    if (entry.rating === 'avoid' && entry.reason.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'A short reason is required for months marked Avoid',
+        path: ['reason'],
+      });
+    }
+  });
 
 const mealsSchema = z.object({
   breakfast: z.boolean().default(false),
@@ -115,7 +119,6 @@ export const packageInputSchema = z
     costExcludes: z.array(z.string().min(1)).default([]),
     heroVideo: z.string().default(''),
     guide: optionalGuideSchema,
-    testimonials: z.array(testimonialSchema).default([]),
     faqs: z.array(faqSchema).default([]),
   })
   .superRefine((data, ctx) => {
@@ -154,5 +157,4 @@ export type ItineraryDayInput = z.infer<typeof itineraryDaySchema>;
 export type BestTimeToVisitEntry = z.infer<typeof bestTimeToVisitEntrySchema>;
 export type CostInput = z.infer<typeof costSchema>;
 export type GuideInput = z.infer<typeof guideSchema>;
-export type TestimonialInput = z.infer<typeof testimonialSchema>;
 export type FaqInput = z.infer<typeof faqSchema>;

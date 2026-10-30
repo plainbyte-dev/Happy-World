@@ -29,11 +29,11 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
 
   const goToEnquiry = () => {
     setMenuOpen(false);
-    router.push('/#enquiry');
+    router.push('/contact');
   };
 
   // Scrolls down to this same page's "Build Your Own" itinerary builder and opens it
-  // directly, instead of routing away to the generic homepage enquiry section.
+  // directly, instead of routing away to the generic contact page.
   const goToCustomTrip = () => {
     setMenuOpen(false);
     splitPanelRef.current?.openCustom();
@@ -56,7 +56,7 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
       <div className="pkg-layout">
         <div className="pkg-main flex flex-col gap-16 sm:gap-20">
           <GallerySection images={detail.gallery} />
-          <WhenToVisit bestTime={detail.bestTime} />
+          {detail.bestTime.length > 0 && <WhenToVisit bestTime={detail.bestTime} />}
         </div>
 
         <aside className="pkg-sidebar">

@@ -19,7 +19,6 @@ import { FaqsSection } from './form/FaqsSection';
 import { FormFooterActions } from './form/FormFooterActions';
 import { GuideSection } from './form/GuideSection';
 import { ItinerarySection } from './form/ItinerarySection';
-import { TestimonialsSection } from './form/TestimonialsSection';
 import { TripDetailsSection } from './form/TripDetailsSection';
 
 interface PackageFormProps {
@@ -183,7 +182,6 @@ export function PackageForm({ draftKey, defaultValues, onSubmit }: PackageFormPr
       />
       <CostSection control={control} register={register} errors={errors} />
       <GuideSection control={control} register={register} errors={errors} />
-      <TestimonialsSection control={control} register={register} errors={errors} />
       <FaqsSection control={control} register={register} errors={errors} />
 
       <FormFooterActions

@@ -26,13 +26,6 @@ export type GuideProfile = {
   bio: string;
 };
 
-export type Testimonial = {
-  name: string;
-  rating: number;
-  quote: string;
-  photo?: string;
-};
-
 export type FaqItem = {
   question: string;
   answer: string;
@@ -55,12 +48,15 @@ export type PackageDetail = {
   categoryKey: string;
   destinationLabel: string;
   destinationHref: string;
+  // Raw destination names (unformatted, unlike destinationLabel) — used to match
+  // this package against a single destination, e.g. on a /destinations/[slug] page.
+  destinations: string[];
   heroImage: string;
   highlights: string[];
   priceFrom: number;
   priceCurrency: string;
   quickFacts: QuickFacts;
-  bestTime: { month: string; rating: MonthRating }[];
+  bestTime: { month: string; rating: MonthRating; reason?: string }[];
   itinerary: ItineraryDay[];
   altitudeProfile: number[];
   costIncludes: string[];
@@ -68,7 +64,6 @@ export type PackageDetail = {
   heroVideo?: string;
   gallery: GalleryImage[];
   guide: GuideProfile;
-  testimonials: Testimonial[];
   faqs: FaqItem[];
   mapImage: GalleryImage;
 };
@@ -80,9 +75,8 @@ type FlatPackage = {
   categoryKey: string;
   destinationLabel: string;
   destinationHref: string;
+  destinations: string[];
 };
-
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const HERO_IMAGES: Record<string, string> = {
   'nepal-tours': '/content-images/NepalTour.png',
@@ -95,14 +89,6 @@ export function slugify(name: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
-}
-
-function hashString(value: string) {
-  let hash = 0;
-  for (let i = 0; i < value.length; i += 1) {
-    hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
-  }
-  return hash;
 }
 
 function difficultyForCategory(categoryKey: string): string {
@@ -118,19 +104,6 @@ function maxAltitudeForCategory(categoryKey: string, days: number): { label: str
     return { label: `${peak.toLocaleString()} M`, peak, base: 850 };
   }
   return { label: '1,400 M', peak: 1400, base: 700 };
-}
-
-function bestTimeForCategory(categoryKey: string): { month: string; rating: MonthRating }[] {
-  if (categoryKey === 'kailash') {
-    const ratings: MonthRating[] = ['poor', 'poor', 'poor', 'fair', 'good', 'excellent', 'excellent', 'excellent', 'good', 'fair', 'poor', 'poor'];
-    return MONTHS.map((month, i) => ({ month, rating: ratings[i] }));
-  }
-  if (categoryKey === 'trekking') {
-    const ratings: MonthRating[] = ['fair', 'good', 'excellent', 'excellent', 'good', 'poor', 'poor', 'poor', 'excellent', 'excellent', 'good', 'fair'];
-    return MONTHS.map((month, i) => ({ month, rating: ratings[i] }));
-  }
-  const ratings: MonthRating[] = ['good', 'good', 'good', 'excellent', 'good', 'fair', 'fair', 'fair', 'good', 'excellent', 'excellent', 'good'];
-  return MONTHS.map((month, i) => ({ month, rating: ratings[i] }));
 }
 
 function costForCategory(categoryKey: string): { includes: string[]; excludes: string[] } {
@@ -168,7 +141,7 @@ function altitudeProfileForPackage(days: number, base: number, peak: number, cat
   });
 }
 
-// Avatars use DiceBear's deterministic SVG generator instead of stock photos — a guide or reviewer
+// Avatars use DiceBear's deterministic SVG generator instead of stock photos — a guide
 // "photo" placeholder should never risk rendering unrelated scenery (or a stranger's face).
 function avatarImage(seed: string): string {
   return `https://api.dicebear.com/9.x/notionists/svg?seed=${encodeURIComponent(seed)}&backgroundColor=f3efe6`;
@@ -186,37 +159,6 @@ function guideForCategory(pkg: FlatPackage): GuideProfile {
     photo: avatarImage(`${slug}-guide`),
     bio: bios[pkg.categoryKey] ?? bios['nepal-tours'],
   };
-}
-
-const REVIEWER_NAMES = ['Amara Singh', 'Liam Carter', 'Yuki Tanaka', 'Sofia Rossi', 'Daniel Osei', 'Priya Nair'];
-
-function testimonialsForPackage(pkg: FlatPackage): Testimonial[] {
-  const slug = slugify(pkg.name);
-  const seed = hashString(pkg.name);
-  const quotes: Record<string, string[]> = {
-    kailash: [
-      'The pass crossing was the hardest thing I have done, and I would do it again tomorrow. Our guide never let the group feel rushed.',
-      'Deeply organised for something so remote — permits, acclimatisation, the lot. I only had to worry about walking.',
-      'A trip that changes how you think about distance and effort. Support crew was exceptional throughout.',
-    ],
-    trekking: [
-      'Teahouses were warmer and better fed than I expected, and the pace matched our slowest walker without anyone feeling held back.',
-      'Waking up to that view was worth every one of the stone steps the day before.',
-      'Our guide knew exactly when to push on and when to sit and have tea. Made the whole trek feel unhurried.',
-    ],
-    'nepal-tours': [
-      'Skipped the tourist script entirely — we ate where locals eat and saw the temples without the crowds.',
-      'Our guide\'s stories about the valley made the sights land differently. Highly recommend for first-timers.',
-      'Well paced, never felt like a checklist. Exactly the kind of day we were hoping for.',
-    ],
-  };
-  const set = quotes[pkg.categoryKey] ?? quotes['nepal-tours'];
-  return set.map((quote, i) => ({
-    name: REVIEWER_NAMES[(seed + i) % REVIEWER_NAMES.length]!,
-    rating: 5 - ((seed + i) % 2 === 0 ? 0 : 1),
-    quote,
-    photo: avatarImage(`${slug}-review-${i}`),
-  }));
 }
 
 function faqsForPackage(pkg: FlatPackage): FaqItem[] {
@@ -259,7 +201,7 @@ type ApiItineraryDay = {
   meals: ApiMeals;
 };
 
-type ApiBestTimeEntry = { month: string; rating: string };
+type ApiBestTimeEntry = { month: string; rating: string; reason?: string };
 
 type ApiPackage = {
   _id: string;
@@ -284,18 +226,18 @@ const API_RATING_TO_MONTH_RATING: Record<string, MonthRating> = {
   best: 'excellent',
   normal: 'good',
   average: 'fair',
-  worst: 'poor',
-  poor: 'poor',
+  avoid: 'poor',
 };
 
 const MONTH_ORDER = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-function bestTimeFromApi(entries: ApiBestTimeEntry[]): { month: string; rating: MonthRating }[] {
+function bestTimeFromApi(entries: ApiBestTimeEntry[]): { month: string; rating: MonthRating; reason?: string }[] {
   return [...entries]
     .sort((a, b) => MONTH_ORDER.indexOf(a.month) - MONTH_ORDER.indexOf(b.month))
     .map((entry) => ({
       month: entry.month.slice(0, 3),
       rating: API_RATING_TO_MONTH_RATING[entry.rating.toLowerCase()] ?? 'fair',
+      reason: entry.reason?.trim() || undefined,
     }));
 }
 
@@ -374,6 +316,7 @@ function apiPackageToFlat(pkg: ApiPackage, tripsMenu: SiteContent['tripsMenu']):
     categoryKey,
     destinationLabel,
     destinationHref: '/#way',
+    destinations: pkg.destinations,
   };
 }
 
@@ -408,6 +351,7 @@ function generateDetailFromApi(pkg: ApiPackage, tripsMenu: SiteContent['tripsMen
     categoryKey: flat.categoryKey,
     destinationLabel: flat.destinationLabel,
     destinationHref: flat.destinationHref,
+    destinations: flat.destinations,
     heroImage,
     highlights: [`Guided time in and around ${flat.destinationLabel}`, 'Small-group pace with a local guide throughout'],
     priceFrom: pkg.cost.from,
@@ -418,14 +362,15 @@ function generateDetailFromApi(pkg: ApiPackage, tripsMenu: SiteContent['tripsMen
       difficulty: difficultyForCategory(flat.categoryKey),
       groupSize: '2–12 travellers',
     },
-    bestTime: pkg.bestTimeToVisit && pkg.bestTimeToVisit.length > 0 ? bestTimeFromApi(pkg.bestTimeToVisit) : bestTimeForCategory(flat.categoryKey),
+    // Only ever real, admin-entered ratings — no fabricated per-category fallback.
+    // When a package hasn't set this, `bestTime` is empty and the section hides.
+    bestTime: pkg.bestTimeToVisit && pkg.bestTimeToVisit.length > 0 ? bestTimeFromApi(pkg.bestTimeToVisit) : [],
     itinerary,
     altitudeProfile: altitudeProfileForPackage(days, base, peak, flat.categoryKey),
     costIncludes: includes,
     costExcludes: excludes,
     gallery: galleryForApiPackage(pkg, flat, heroImage),
     guide: guideForCategory(flat),
-    testimonials: testimonialsForPackage(flat),
     faqs: faqsForPackage(flat),
     mapImage: { src: heroImage, alt: `${flat.name} — the ${flat.destinationLabel} region` },
   };
@@ -478,6 +423,12 @@ export async function getPackageBySlug(slug: string): Promise<PackageDetail | un
 export async function getPackagesByCategory(categoryKey: string): Promise<PackageDetail[]> {
   const details = await allDetails();
   return details.filter((detail) => detail.categoryKey === categoryKey);
+}
+
+export async function getPackagesByDestination(destinationName: string): Promise<PackageDetail[]> {
+  const details = await allDetails();
+  const target = destinationName.trim().toLowerCase();
+  return details.filter((detail) => detail.destinations.some((name) => name.trim().toLowerCase() === target));
 }
 
 export async function getRelatedPackages(detail: PackageDetail, limit = 3): Promise<PackageDetail[]> {

@@ -18,7 +18,7 @@ function SiteChrome({ children, solidNav }: SiteChromeProps) {
 
   const goToEnquiry = () => {
     setMenuOpen(false);
-    router.push('/#enquiry');
+    router.push('/contact');
   };
 
   useEffect(() => {

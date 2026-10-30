@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
 import SiteHeader from '@/components/sections/site-header';
 import MobileMenu from '@/components/sections/mobile-menu';
 import HeroSection from '@/components/sections/hero-section';
@@ -10,24 +9,16 @@ import ExploreDestinationsSection from '@/components/sections/explore-destinatio
 import JourneysSection from '@/components/sections/journeys-section';
 import PackageGridSection from '@/components/sections/package-grid-section';
 import HowWeTravelSection from '@/components/sections/how-we-travel-section';
-import EnquirySection from '@/components/sections/enquiry-section';
 import SiteFooter from '@/components/sections/site-footer';
 import { useSiteContent } from '@/lib/site-content-context';
-import { enquirySchema, type EnquiryValues } from '@/lib/enquiry-schema';
-import { buildEnquiryWhatsappUrl } from '@/lib/whatsapp';
-import { submitContactEnquiry } from '@/lib/contact';
 
 function Home() {
   const content = useSiteContent();
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [slide, setSlide] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const form = useForm<EnquiryValues>({
-    resolver: zodResolver(enquirySchema),
-    defaultValues: { name: '', email: '', interest: '', message: '', updates: false },
-  });
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -42,17 +33,9 @@ function Home() {
     return () => window.clearInterval(timer);
   }, [paused, content.heroSlides.length]);
 
-  const scrollToEnquiry = (interest?: string) => {
-    if (interest) form.setValue('interest', interest);
+  const goToEnquiry = () => {
     setMenuOpen(false);
-    document.getElementById('enquiry')?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const submitEnquiry = async (values: EnquiryValues) => {
-    await submitContactEnquiry(values);
-    window.open(buildEnquiryWhatsappUrl(content.footer.whatsapp, values), '_blank', 'noopener,noreferrer');
-    setSubmitted(true);
-    form.reset();
+    router.push('/contact');
   };
 
   return (
@@ -61,12 +44,12 @@ function Home() {
         scrolled={scrolled}
         menuOpen={menuOpen}
         onToggleMenu={() => setMenuOpen(!menuOpen)}
-        onEnquire={() => scrollToEnquiry()}
+        onEnquire={goToEnquiry}
       />
       <MobileMenu
         open={menuOpen}
         onNavigate={() => setMenuOpen(false)}
-        onEnquire={() => scrollToEnquiry()}
+        onEnquire={goToEnquiry}
       />
       <HeroSection
         slide={slide}
@@ -79,12 +62,6 @@ function Home() {
       <JourneysSection />
       <PackageGridSection />
       <HowWeTravelSection />
-      <EnquirySection
-        form={form}
-        submitted={submitted}
-        onSubmit={submitEnquiry}
-        onSendAnother={() => setSubmitted(false)}
-      />
       <SiteFooter />
     </main>
   );

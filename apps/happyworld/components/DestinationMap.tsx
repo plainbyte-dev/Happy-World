@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Map, { Marker, Popup, type MapRef } from 'react-map-gl/maplibre';
 import { setWorkerUrl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { slugify } from '@/lib/packages';
 
 // maplibre-gl ships its tile-processing worker as a separate ESM chunk and
 // resolves its URL relative to its own bundled location by default, which
@@ -16,15 +17,16 @@ if (typeof window !== 'undefined') {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://happy-world-admin-backend-neon.vercel.app';
 
-// What the backend's Destination model actually stores (apps/admin-backend/src/models/Destination.ts)
-// — just a name and, for destinations added since the map shipped, coordinates. There's no
-// description/image/category/tourUrl on this model, unlike the Package model, so the map's UI is
-// intentionally minimal to match: a name and a generic link to browse tours, nothing invented.
+// What the backend's Destination model stores (apps/admin-backend/src/models/Destination.ts)
+// — a name, coordinates (for destinations added since the map shipped), and an optional
+// admin-written description. No image/category/tourUrl on this model, unlike the Package
+// model, so the popup only ever shows real admin-entered text, nothing invented.
 type ApiDestination = {
   _id: string;
   name: string;
   lat?: number;
   lng?: number;
+  description?: string;
 };
 
 type Destination = {
@@ -32,6 +34,7 @@ type Destination = {
   name: string;
   lat: number;
   lng: number;
+  description?: string;
 };
 
 // CARTO's free vector basemap — no API key required. Overridable via env if the
@@ -56,7 +59,7 @@ async function fetchDestinations(): Promise<Destination[]> {
     // skip rather than plot a marker at (0, 0) or crash on a missing value.
     return json.data
       .filter((d): d is ApiDestination & { lat: number; lng: number } => typeof d.lat === 'number' && typeof d.lng === 'number')
-      .map((d) => ({ id: d._id, name: d.name, lat: d.lat, lng: d.lng }));
+      .map((d) => ({ id: d._id, name: d.name, lat: d.lat, lng: d.lng, description: d.description?.trim() || undefined }));
   } catch {
     return [];
   }
@@ -240,7 +243,10 @@ export default function DestinationMap() {
               <div className="destination-popup-card">
                 <div className="p-4">
                   <p className="font-serif text-base font-bold text-[#1a2650]">{selected.name}</p>
-                  <Link href="/tour-types" className="destination-popup-link">
+                  {selected.description ? (
+                    <p className="mt-1.5 max-w-[220px] text-xs leading-relaxed text-[#56607d]">{selected.description}</p>
+                  ) : null}
+                  <Link href={`/destinations/${slugify(selected.name)}`} className="destination-popup-link mt-2 inline-block">
                     View tours
                   </Link>
                 </div>

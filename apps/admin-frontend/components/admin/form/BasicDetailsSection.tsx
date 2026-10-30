@@ -19,6 +19,7 @@ const DURATION_LABELS: Record<(typeof DURATION_VALUES)[number], string> = {
   '5-7': '5–7 days',
   '8-10': '8–10 days',
   '10-12': '10–12 days',
+  '12+': '12+ days',
 };
 
 const CATEGORY_LABELS: Record<(typeof CATEGORY_VALUES)[number], string> = {

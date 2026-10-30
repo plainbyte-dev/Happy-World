@@ -98,7 +98,7 @@ async function TourTypePage({ params }: { params: Promise<{ category: string }> 
           ) : (
             <div className="glass-card rounded-3xl p-10 text-center">
               <p className="text-foreground/80">No {category.label.toLowerCase()} packages are published yet.</p>
-              <a href="/#enquiry" className="btn-primary inline-flex mt-6">
+              <a href="/contact" className="btn-primary inline-flex mt-6">
                 Tell us what you're looking for <ArrowRight size={16} />
               </a>
             </div>

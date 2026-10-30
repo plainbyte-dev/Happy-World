@@ -14,8 +14,9 @@ interface BestTimeToVisitSectionProps {
 
 const RATING_STYLES: Record<(typeof RATING_VALUES)[number], { active: string; label: string }> = {
   best: { active: 'bg-emerald-600 text-white border-emerald-600', label: 'Best' },
-  normal: { active: 'bg-amber-500 text-white border-amber-500', label: 'Normal' },
+  normal: { active: 'bg-yellow-500 text-white border-yellow-500', label: 'Normal' },
   average: { active: 'bg-slate-400 text-white border-slate-400', label: 'Average' },
+  avoid: { active: 'bg-red-600 text-white border-red-600', label: 'Avoid' },
 };
 
 export function BestTimeToVisitSection({ control, setValue, errors }: BestTimeToVisitSectionProps) {
@@ -29,16 +30,28 @@ export function BestTimeToVisitSection({ control, setValue, errors }: BestTimeTo
     } else if (current) {
       next = bestTimeToVisit.map((entry) => (entry.month === month ? { ...entry, rating } : entry));
     } else {
-      next = [...bestTimeToVisit, { month, rating }];
+      next = [...bestTimeToVisit, { month, rating, reason: '' }];
     }
     setValue('bestTimeToVisit', next, { shouldValidate: true, shouldDirty: true });
   }
 
+  function setReason(month: (typeof MONTH_VALUES)[number], reason: string) {
+    const next = bestTimeToVisit.map((entry) => (entry.month === month ? { ...entry, reason } : entry));
+    setValue('bestTimeToVisit', next, { shouldValidate: true, shouldDirty: true });
+  }
+
   return (
-    <SectionCard title="Best time to visit" description="Optional — rate the months this package is best suited for.">
+    <SectionCard title="Best time to visit" description="Optional — rate the months this package is best suited for. Legend: Best (green), Normal (yellow), Average (grey), Avoid (red).">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {MONTH_VALUES.map((month) => {
-          const activeRating = bestTimeToVisit.find((entry) => entry.month === month)?.rating;
+          const entryIndex = bestTimeToVisit.findIndex((entry) => entry.month === month);
+          const activeEntry = entryIndex === -1 ? undefined : bestTimeToVisit[entryIndex];
+          const activeRating = activeEntry?.rating;
+          const reasonError =
+            entryIndex === -1
+              ? undefined
+              : (errors.bestTimeToVisit as unknown as Array<{ reason?: { message?: string } }> | undefined)?.[entryIndex]?.reason
+                  ?.message;
           return (
             <div key={month} className="rounded-md border border-slate-200 p-3">
               <p className="mb-2 text-sm font-medium text-slate-800">{month}</p>
@@ -60,6 +73,18 @@ export function BestTimeToVisitSection({ control, setValue, errors }: BestTimeTo
                   );
                 })}
               </div>
+              {activeRating === 'avoid' && (
+                <div className="mt-2">
+                  <input
+                    className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
+                    value={activeEntry?.reason ?? ''}
+                    onChange={(event) => setReason(month, event.target.value)}
+                    placeholder="Why avoid this month? (required)"
+                    maxLength={140}
+                  />
+                  {reasonError && <p className="mt-1 text-[11px] text-red-600">{reasonError}</p>}
+                </div>
+              )}
             </div>
           );
         })}

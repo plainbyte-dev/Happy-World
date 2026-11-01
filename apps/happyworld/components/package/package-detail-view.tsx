@@ -56,6 +56,7 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
 
       <div className="pkg-layout">
         <div className="pkg-main flex flex-col gap-16 sm:gap-20">
+          <GallerySection images={detail.gallery} />
           <OverviewSection
             description={detail.description}
             highlights={detail.highlights}
@@ -64,7 +65,6 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
             guide={detail.guide}
             heroVideo={detail.heroVideo}
           />
-          <GallerySection images={detail.gallery} />
           {detail.bestTime.length > 0 && <WhenToVisit bestTime={detail.bestTime} />}
         </div>
 

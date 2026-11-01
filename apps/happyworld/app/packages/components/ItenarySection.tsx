@@ -126,7 +126,7 @@ export default function ItenarySection({ itinerary, destinationLabel, heroImage,
 
         ensureSpace(14);
         doc.setFontSize(9.5);
-        const meta = [`Meals: ${day.meals}`, `Stay: ${day.stay}`, `Transport: ${day.transport}`].join('   ·   ');
+        const meta = [`Meals: ${day.meals}`, `Destination: ${destinationLabel}`].join('   ·   ');
         const metaLines: string[] = doc.splitTextToSize(meta, contentWidth);
         metaLines.forEach((line) => {
           ensureSpace(13);
@@ -265,7 +265,7 @@ export default function ItenarySection({ itinerary, destinationLabel, heroImage,
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-foreground text-base group-hover:text-primary transition-colors">{day.title}</p>
-                    <p className="text-sm text-muted-foreground truncate">{day.keyActivities?.[0] ?? day.transport}</p>
+                    <p className="text-sm text-muted-foreground truncate">{day.keyActivities?.[0] ?? destinationLabel}</p>
                   </div>
                   <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Icon name="MapPinIcon" size={14} className="text-primary" />
@@ -326,12 +326,8 @@ export default function ItenarySection({ itinerary, destinationLabel, heroImage,
                           </div>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Stay</p>
-                          <p className="text-xs text-foreground/70">{day.stay}</p>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Transport</p>
-                          <p className="text-xs text-foreground/70">{day.transport}</p>
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Destination</p>
+                          <p className="text-xs text-foreground/70">{destinationLabel}</p>
                         </div>
                       </div>
                     </div>

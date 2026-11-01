@@ -36,6 +36,7 @@ const itineraryDaySchema = new Schema(
     keyActivities: { type: [String], default: [] },
     accommodation: { type: String, default: '' },
     transportation: { type: String, default: '' },
+    altitude: { type: Number },
     meals: { type: mealsSchema, default: () => ({}) },
   },
   { _id: false },

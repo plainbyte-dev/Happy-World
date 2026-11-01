@@ -44,6 +44,13 @@ const optionalDifficultySchema = z.preprocess(
   z.enum(DIFFICULTY_VALUES).optional(),
 );
 
+// A number input left blank round-trips as NaN via valueAsNumber, not undefined —
+// treat that the same as "not set" rather than failing validation.
+const optionalAltitudeSchema = z.preprocess(
+  (val) => (typeof val === 'number' && Number.isNaN(val) ? undefined : val),
+  z.number().int().min(0, 'Altitude must be 0 or greater').max(9000, 'Altitude must be 9000m or less').optional(),
+);
+
 const faqSchema = z.object({
   question: z.string().min(1),
   answer: z.string().min(1),
@@ -79,6 +86,7 @@ const itineraryDaySchema = z.object({
   keyActivities: z.array(z.string().min(1)).min(1, 'Add at least one key activity'),
   accommodation: z.string().default(''),
   transportation: z.string().default(''),
+  altitude: optionalAltitudeSchema,
   meals: mealsSchema.default({ breakfast: false, lunch: false, dinner: false }),
 });
 

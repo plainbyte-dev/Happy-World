@@ -95,7 +95,7 @@ export function ItineraryDayCard({
             <FieldError message={dayErrors?.keyActivities?.message} />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>
               <label className={labelClass}>Accommodation</label>
               <input className={inputClass} {...register(`itinerary.${index}.accommodation`)} />
@@ -103,6 +103,19 @@ export function ItineraryDayCard({
             <div>
               <label className={labelClass}>Transportation</label>
               <input className={inputClass} {...register(`itinerary.${index}.transportation`)} />
+            </div>
+            <div>
+              <label className={labelClass}>Altitude (m)</label>
+              <input
+                type="number"
+                step="1"
+                min="0"
+                max="9000"
+                className={inputClass}
+                placeholder="e.g. 3440"
+                {...register(`itinerary.${index}.altitude`, { valueAsNumber: true })}
+              />
+              <FieldError message={dayErrors?.altitude?.message} />
             </div>
           </div>
 

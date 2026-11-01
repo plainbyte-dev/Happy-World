@@ -10,6 +10,7 @@ export function emptyItineraryDay(day: number): ItineraryDayInput {
     keyActivities: [],
     accommodation: '',
     transportation: '',
+    altitude: undefined,
     meals: { breakfast: false, lunch: false, dinner: false },
   };
 }

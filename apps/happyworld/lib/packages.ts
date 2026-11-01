@@ -11,6 +11,7 @@ export type ItineraryDay = {
   keyActivities?: string[];
   lat?: number;
   lng?: number;
+  altitude?: number;
 };
 
 export type GalleryImage = {
@@ -89,30 +90,6 @@ export function slugify(name: string) {
     .replace(/(^-|-$)/g, '');
 }
 
-// Extracts the first number out of a free-text admin value like "5,630 m" —
-// there's no structured altitude field, just this string, so the estimated
-// profile chart below has to parse it to get a real peak instead of guessing one.
-function parseAltitudeMeters(raw: string): number | null {
-  const match = raw.replace(/,/g, '').match(/\d+/);
-  return match ? Number(match[0]) : null;
-}
-
-function altitudeProfileForPackage(days: number, base: number, peak: number, categoryKey: string): number[] {
-  return Array.from({ length: days }, (_, i) => {
-    if (days === 1) return peak;
-    const t = i / (days - 1);
-    if (categoryKey === 'kailash') {
-      const climb = Math.sin(t * Math.PI);
-      return Math.round(base + (peak - base) * climb);
-    }
-    if (categoryKey === 'trekking') {
-      const climb = t <= 0.6 ? t / 0.6 : 1 - (t - 0.6) / 0.4;
-      return Math.round(base + (peak - base) * Math.max(climb, 0.15));
-    }
-    return Math.round(base + (peak - base) * 0.3 * Math.sin(t * Math.PI));
-  });
-}
-
 // Live packages published from the admin dashboard.
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://happy-world-admin-backend-neon.vercel.app';
 
@@ -126,6 +103,7 @@ type ApiItineraryDay = {
   keyActivities: string[];
   accommodation: string;
   transportation: string;
+  altitude?: number;
   meals: ApiMeals;
 };
 
@@ -254,8 +232,6 @@ function generateDetailFromApi(pkg: ApiPackage, tripsMenu: SiteContent['tripsMen
   const flat = apiPackageToFlat(pkg, tripsMenu);
   const days = pkg.itinerary.length;
   const maxAltitude = pkg.maxAltitude?.trim() || '';
-  const peak = parseAltitudeMeters(maxAltitude);
-  const base = peak !== null ? Math.max(300, Math.round(peak * 0.25)) : 0;
   const heroImage = resolveApiImage(pkg.coverImage);
 
   const itinerary: ItineraryDay[] = pkg.itinerary.map((day) => {
@@ -271,8 +247,15 @@ function generateDetailFromApi(pkg: ApiPackage, tripsMenu: SiteContent['tripsMen
       // package's real heroImage when a day has no image of its own.
       image: realImage ? { src: resolveApiImage(realImage), alt: day.title || flat.name } : undefined,
       keyActivities: day.keyActivities.filter(Boolean),
+      altitude: typeof day.altitude === 'number' ? day.altitude : undefined,
     };
   });
+
+  // Only a real, admin-entered altitude profile — every day needs its own value,
+  // otherwise the chart would either mislabel days or invent the missing ones.
+  const altitudeProfile = itinerary.every((day) => typeof day.altitude === 'number')
+    ? itinerary.map((day) => day.altitude as number)
+    : [];
 
   return {
     slug: slugify(flat.name),
@@ -297,10 +280,7 @@ function generateDetailFromApi(pkg: ApiPackage, tripsMenu: SiteContent['tripsMen
     // When a package hasn't set this, `bestTime` is empty and the section hides.
     bestTime: pkg.bestTimeToVisit && pkg.bestTimeToVisit.length > 0 ? bestTimeFromApi(pkg.bestTimeToVisit) : [],
     itinerary,
-    // No real per-day elevation data exists (itinerary days don't collect lat/lng),
-    // so this stays an estimated shape — but anchored to the real admin max altitude
-    // instead of a guessed one. No real max altitude means no chart at all.
-    altitudeProfile: peak !== null ? altitudeProfileForPackage(days, base, peak, flat.categoryKey) : [],
+    altitudeProfile,
     costIncludes: (pkg.costIncludes ?? []).filter(Boolean),
     costExcludes: (pkg.costExcludes ?? []).filter(Boolean),
     heroVideo: pkg.heroVideo?.trim() || undefined,

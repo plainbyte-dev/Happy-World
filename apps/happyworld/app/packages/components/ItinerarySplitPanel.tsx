@@ -1,14 +1,62 @@
 'use client';
 
-import { forwardRef, useState, useEffect, useRef, useCallback, useImperativeHandle } from 'react';
+import { forwardRef, useState, useEffect, useRef, useCallback, useMemo, useImperativeHandle } from 'react';
 import { CalendarDays, ChevronRight, NotebookPen } from 'lucide-react';
 import ItenarySection from '@/app/packages/components/ItenarySection';
-import CustomItinerarySection, { type CustomItinerarySectionHandle } from '@/app/packages/components/CustomItinerarySection';
+import CustomItinerarySection, {
+  type CustomDay,
+  type CustomItinerarySectionHandle,
+  STAY_OPTIONS,
+  TRANSPORT_OPTIONS,
+} from '@/app/packages/components/CustomItinerarySection';
 import type { ItineraryDay } from '@/lib/packages';
 
 const ANIM_MS = 460;
 
 type Panel = 'itinerary' | 'custom';
+
+// The custom builder's meals/stay/transport are fixed dropdowns, so a straight copy can't
+// always land on an exact option — best-effort match them, and keep the full original text
+// in `detail` regardless so nothing from the standard itinerary gets silently dropped.
+function mapMealsOption(raw: string): string {
+  if (!raw || raw === '—') return 'No meals included';
+  const b = raw.includes('Breakfast');
+  const l = raw.includes('Lunch');
+  const d = raw.includes('Dinner');
+  if (b && l && d) return 'All meals (Breakfast, Lunch & Dinner)';
+  if (b && l) return 'Breakfast & Lunch';
+  if (b && d) return 'Breakfast & Dinner';
+  if (l && d) return 'Lunch & Dinner';
+  if (b) return 'Breakfast only';
+  return '';
+}
+
+function matchOption(raw: string, options: string[]): string {
+  if (!raw || raw === '—') return '';
+  const lower = raw.toLowerCase();
+  return options.find((option) => lower.includes(option.toLowerCase())) ?? '';
+}
+
+function buildCustomDaysFromItinerary(itinerary: ItineraryDay[]): Array<Omit<CustomDay, 'id'>> {
+  return itinerary.map((day) => {
+    const mealsOption = mapMealsOption(day.meals);
+    const stayOption = matchOption(day.stay, STAY_OPTIONS);
+    const transportOption = matchOption(day.transport, TRANSPORT_OPTIONS);
+    const extras = [
+      day.stay && day.stay !== '—' && !stayOption ? `Stay: ${day.stay}` : '',
+      day.transport && day.transport !== '—' && !transportOption ? `Transport: ${day.transport}` : '',
+    ]
+      .filter(Boolean)
+      .join('   ·   ');
+    return {
+      title: day.title,
+      detail: [day.detail, extras].filter(Boolean).join('\n\n'),
+      meals: mealsOption,
+      stay: stayOption,
+      transport: transportOption,
+    };
+  });
+}
 
 type Props = {
   itinerary: ItineraryDay[];
@@ -32,9 +80,14 @@ const ItinerarySplitPanel = forwardRef<ItinerarySplitPanelHandle, Props>(functio
   const [active, setActive] = useState<Panel>('itinerary');
   const [content, setContent] = useState<Panel | null>('itinerary');
   const [isMobile, setIsMobile] = useState(false);
+  // Set by "Customize this itinerary" so the next desktop mount of the (freshly
+  // remounted) custom panel opens pre-filled with the standard itinerary's days.
+  const [prefillWithItinerary, setPrefillWithItinerary] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const customSectionRef = useRef<CustomItinerarySectionHandle>(null);
+
+  const mappedCustomDays = useMemo(() => buildCustomDaysFromItinerary(itinerary), [itinerary]);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 639px)');
@@ -66,10 +119,22 @@ const ItinerarySplitPanel = forwardRef<ItinerarySplitPanelHandle, Props>(functio
       if (isMobile) {
         customSectionRef.current?.open();
       } else {
+        setPrefillWithItinerary(false);
         expand('custom');
       }
     },
   }), [isMobile, expand]);
+
+  // "Customize this itinerary" — copies the standard day-by-day plan into the
+  // builder and opens it, instead of making the user retype everything.
+  const customizeItinerary = useCallback(() => {
+    if (isMobile) {
+      customSectionRef.current?.loadDays(mappedCustomDays);
+    } else {
+      setPrefillWithItinerary(true);
+      expand('custom');
+    }
+  }, [isMobile, mappedCustomDays, expand]);
 
   // ── Mobile: just stack both panels vertically, no collapse behaviour ──────
   if (isMobile) {
@@ -81,6 +146,7 @@ const ItinerarySplitPanel = forwardRef<ItinerarySplitPanelHandle, Props>(functio
           heroImage={heroImage}
           packageName={packageName}
           duration={duration}
+          onCustomize={customizeItinerary}
         />
         <CustomItinerarySection ref={customSectionRef} packageName={packageName} />
       </div>
@@ -107,6 +173,7 @@ const ItinerarySplitPanel = forwardRef<ItinerarySplitPanelHandle, Props>(functio
               heroImage={heroImage}
               packageName={packageName}
               duration={duration}
+              onCustomize={customizeItinerary}
             />
           </div>
         ) : (
@@ -142,12 +209,20 @@ const ItinerarySplitPanel = forwardRef<ItinerarySplitPanelHandle, Props>(functio
       >
         {content === 'custom' ? (
           <div className="split-panel-fade">
-            <CustomItinerarySection packageName={packageName} fullWidth />
+            <CustomItinerarySection
+              packageName={packageName}
+              fullWidth
+              initialDays={prefillWithItinerary ? mappedCustomDays : undefined}
+            />
           </div>
         ) : (
           <button
             type="button"
-            onClick={() => expand('custom')}
+            onClick={() => {
+              // A plain click (not "Customize this itinerary") should always open blank.
+              setPrefillWithItinerary(false);
+              expand('custom');
+            }}
             className="group w-full h-full glass-card rounded-3xl flex flex-col items-center justify-center gap-4 p-6 text-center hover:border-primary/40 transition-colors"
             aria-label="Build your own itinerary"
             data-testid="collapsed-custom-panel"

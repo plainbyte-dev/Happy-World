@@ -4,7 +4,7 @@ import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, NotebookPen, Plus, Send, Trash2 } from 'lucide-react';
 
-type CustomDay = {
+export type CustomDay = {
   id: string;
   title: string;
   detail: string;
@@ -17,11 +17,15 @@ type CustomItinerarySectionProps = {
   packageName: string;
   /** When true, the component fills its container width; outer split-panel handles expand/collapse. */
   fullWidth?: boolean;
+  /** Pre-fills the builder on mount, e.g. with the standard itinerary copied over by "Customize". */
+  initialDays?: Array<Omit<CustomDay, 'id'>>;
 };
 
 export type CustomItinerarySectionHandle = {
   /** Opens the builder and scrolls it into view — called imperatively by an ancestor, e.g. a sidebar CTA. */
   open: () => void;
+  /** Replaces the builder's days (e.g. with the standard itinerary copied over) and opens it. */
+  loadDays: (days: Array<Omit<CustomDay, 'id'>>) => void;
 };
 
 let idCounter = 0;
@@ -34,12 +38,12 @@ const blankDay = (): CustomDay => ({ id: nextId(), title: '', detail: '', meals:
 
 // First entry of each list is the blank/unselected placeholder (value=""), kept out of the
 // sent message by the existing `day.meals.trim() && ...` checks in sendItinerary below.
-const MEALS_OPTIONS = ['No meals included', 'Breakfast only', 'Breakfast & Lunch', 'Breakfast & Dinner', 'Lunch & Dinner', 'All meals (Breakfast, Lunch & Dinner)'];
-const STAY_OPTIONS = ['Teahouse', 'Guesthouse', 'Lodge', 'Hotel', 'Homestay', 'Camp / Tented camp'];
-const TRANSPORT_OPTIONS = ['On foot', 'Private vehicle', 'Support vehicle', 'Shared jeep', 'Public bus', 'Domestic flight'];
+export const MEALS_OPTIONS = ['No meals included', 'Breakfast only', 'Breakfast & Lunch', 'Breakfast & Dinner', 'Lunch & Dinner', 'All meals (Breakfast, Lunch & Dinner)'];
+export const STAY_OPTIONS = ['Teahouse', 'Guesthouse', 'Lodge', 'Hotel', 'Homestay', 'Camp / Tented camp'];
+export const TRANSPORT_OPTIONS = ['On foot', 'Private vehicle', 'Support vehicle', 'Shared jeep', 'Public bus', 'Domestic flight'];
 
 const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomItinerarySectionProps>(function CustomItinerarySection(
-  { packageName, fullWidth = false },
+  { packageName, fullWidth = false, initialDays },
   ref,
 ) {
   const router = useRouter();
@@ -47,11 +51,18 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
   // this exact section — starting it collapsed again would force a redundant
   // second "Open builder" click right after the first one.
   const [open, setOpen] = useState(fullWidth);
-  const [days, setDays] = useState<CustomDay[]>([blankDay()]);
+  const [days, setDays] = useState<CustomDay[]>(() =>
+    initialDays && initialDays.length > 0 ? initialDays.map((day) => ({ ...day, id: nextId() })) : [blankDay()],
+  );
   const rootRef = useRef<HTMLDivElement>(null);
 
   useImperativeHandle(ref, () => ({
     open: () => {
+      setOpen(true);
+      rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+    loadDays: (newDays) => {
+      setDays(newDays.length > 0 ? newDays.map((day) => ({ ...day, id: nextId() })) : [blankDay()]);
       setOpen(true);
       rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     },

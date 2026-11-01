@@ -11,11 +11,13 @@ type ItenarySectionProps = {
   heroImage: string;
   packageName: string;
   duration?: string;
+  /** Copies this itinerary into the "Build Your Own" panel and opens it, when provided. */
+  onCustomize?: () => void;
 };
 
 type ViewMode = 'detailed' | 'outline';
 
-export default function ItenarySection({ itinerary, destinationLabel, heroImage, packageName, duration }: ItenarySectionProps) {
+export default function ItenarySection({ itinerary, destinationLabel, heroImage, packageName, duration, onCustomize }: ItenarySectionProps) {
   const [expandedDays, setExpandedDays] = useState<Set<number>>(() => new Set(itinerary[0] ? [itinerary[0].day] : []));
   const [viewMode, setViewMode] = useState<ViewMode>('detailed');
   const [downloading, setDownloading] = useState(false);
@@ -195,7 +197,7 @@ export default function ItenarySection({ itinerary, destinationLabel, heroImage,
         </div>
       </div>
 
-      <div className="mb-10">
+      <div className="mb-10 flex flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={toggleAllDays}
@@ -205,6 +207,18 @@ export default function ItenarySection({ itinerary, destinationLabel, heroImage,
         >
           {allOpen ? 'Collapse all' : 'Open all'}
         </button>
+
+        {onCustomize ? (
+          <button
+            type="button"
+            onClick={onCustomize}
+            className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-sm font-bold text-primary transition-all duration-200 hover:bg-primary/10"
+            data-testid="button-itinerary-customize"
+          >
+            <Icon name="PencilSquareIcon" size={15} />
+            Customize this itinerary
+          </button>
+        ) : null}
       </div>
 
       {viewMode === 'outline' ? (

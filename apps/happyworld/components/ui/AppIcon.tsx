@@ -21,6 +21,7 @@ import {
   Phone,
   Plus,
   PlusCircle,
+  SquarePen,
   ShieldCheck,
   Star,
   Users,
@@ -56,6 +57,7 @@ const ICONS: Record<string, LucideIcon> = {
   CheckIcon: Check,
   CheckCircleIcon: CheckCircle,
   MountainIcon: Mountain,
+  PencilSquareIcon: SquarePen,
 };
 
 export type IconName = keyof typeof ICONS;

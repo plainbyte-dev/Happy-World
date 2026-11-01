@@ -2,7 +2,11 @@
 
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { AlertTriangle, ChevronLeft, ChevronRight, Mail, NotebookPen, Plus, Trash2 } from 'lucide-react';
-import { useSiteContent } from '@/lib/site-content-context';
+
+// Deliberately not the public-facing `footer.email` from site content (that's the
+// address shown to visitors) — custom itinerary drafts should land in the inbox the
+// team actually works out of.
+const ITINERARY_RECIPIENT_EMAIL = 'happyworldtt2023@gmail.com';
 
 export type CustomDay = {
   id: string;
@@ -63,7 +67,6 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
   { packageName, fullWidth = false, initialDays },
   ref,
 ) {
-  const { footer } = useSiteContent();
   // Full-width means the outer split panel already made the user choose to expand
   // this exact section — starting it collapsed again would force a redundant
   // second "Open builder" click right after the first one.
@@ -170,7 +173,7 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
       '',
       `— ${name.trim()} (${email.trim()})`,
     ].join('\n');
-    const url = buildGmailComposeUrl(footer.email, subject, body);
+    const url = buildGmailComposeUrl(ITINERARY_RECIPIENT_EMAIL, subject, body);
     setGmailUrl(url);
     window.open(url, '_blank', 'noopener,noreferrer');
   };

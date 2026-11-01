@@ -42,7 +42,7 @@ function SiteFooter() {
                           {content.tripsMenu.map((category) => (
                             <Link
                               key={category.key}
-                              href={category.href}
+                              href={`/tour-types/${category.key}`}
                               className="footer-nav-link text-[13px] text-[#b7bfd8]"
                               data-testid={`link-footer-trips-${category.key}`}
                             >

@@ -137,7 +137,7 @@ function SiteHeader({ scrolled, menuOpen, onToggleMenu, onEnquire, solid }: Site
                             {content.tripsMenu.map((category) => (
                               <li key={category.key}>
                                 <a
-                                  href={category.href}
+                                  href={`/tour-types/${category.key}`}
                                   className={`trips-category-link ${activeCategory === category.key ? 'trips-category-link-active' : ''}`}
                                   onMouseEnter={() => setActiveCategory(category.key)}
                                   onClick={(e) => {

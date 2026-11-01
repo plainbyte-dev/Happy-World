@@ -34,7 +34,7 @@ function MobileMenu({ open, onNavigate, onEnquire }: MobileMenuProps) {
                     {content.tripsMenu.map((category) => (
                       <a
                         key={category.key}
-                        href={category.href}
+                        href={`/tour-types/${category.key}`}
                         onClick={onNavigate}
                         className="mobile-nav-trips-item"
                         data-testid={`link-mobile-trips-${category.key}`}

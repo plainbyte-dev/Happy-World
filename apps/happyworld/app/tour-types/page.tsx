@@ -33,7 +33,7 @@ async function TourTypesPage() {
           {tripsMenu.map((category) => (
             <Link
               key={category.key}
-              href={category.href}
+              href={`/tour-types/${category.key}`}
               className="group relative block rounded-3xl overflow-hidden min-h-[420px] image-zoom-container"
               data-testid={`link-tour-type-${category.key}`}
             >

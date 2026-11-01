@@ -1,11 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
 import Map, { Marker, Popup, type MapRef } from 'react-map-gl/maplibre';
 import { setWorkerUrl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { slugify } from '@/lib/packages';
 
 // maplibre-gl ships its tile-processing worker as a separate ESM chunk and
 // resolves its URL relative to its own bundled location by default, which
@@ -212,9 +210,6 @@ export default function DestinationMap() {
                   {selected.description ? (
                     <p className="mt-1.5 max-w-[220px] text-xs leading-relaxed text-[#56607d]">{selected.description}</p>
                   ) : null}
-                  <Link href={`/destinations/${slugify(selected.name)}`} className="destination-popup-link mt-2 inline-block">
-                    View tours
-                  </Link>
                 </div>
               </div>
             </Popup>

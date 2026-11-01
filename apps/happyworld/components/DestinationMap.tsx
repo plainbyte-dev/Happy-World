@@ -77,26 +77,12 @@ function usePrefersReducedMotion(): boolean {
   return reduced;
 }
 
-function useIsTouchDevice(): boolean {
-  const [touch, setTouch] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia('(hover: none) and (pointer: coarse)');
-    const update = () => setTouch(mq.matches);
-    update();
-    mq.addEventListener('change', update);
-    return () => mq.removeEventListener('change', update);
-  }, []);
-  return touch;
-}
-
 export default function DestinationMap() {
   const mapRef = useRef<MapRef>(null);
   const reducedMotion = usePrefersReducedMotion();
-  const isTouch = useIsTouchDevice();
 
   const [mapReady, setMapReady] = useState(false);
   const [destinations, setDestinations] = useState<Destination[] | null>(null);
-  const [tooltipId, setTooltipId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Destination | null>(null);
 
   useEffect(() => {
@@ -124,7 +110,6 @@ export default function DestinationMap() {
         essential: true,
       });
       setSelected(destination);
-      setTooltipId(null);
     },
     [flyDuration],
   );
@@ -142,20 +127,7 @@ export default function DestinationMap() {
       essential: true,
     });
     setSelected(null);
-    setTooltipId(null);
   }, [flyDuration]);
-
-  const handleMarkerActivate = useCallback(
-    (destination: Destination) => {
-      if (isTouch && tooltipId !== destination.id) {
-        // First tap on touch: preview the name only, mirroring hover on desktop.
-        setTooltipId(destination.id);
-        return;
-      }
-      flyToDestination(destination);
-    },
-    [isTouch, tooltipId, flyToDestination],
-  );
 
   const onMapLoad = useCallback(() => {
     const map = mapRef.current?.getMap();
@@ -209,9 +181,7 @@ export default function DestinationMap() {
                   tabIndex={0}
                   aria-label={`View ${destination.name}`}
                   className="destination-marker"
-                  onMouseEnter={() => !isTouch && setTooltipId(destination.id)}
-                  onMouseLeave={() => !isTouch && setTooltipId((current) => (current === destination.id ? null : current))}
-                  onClick={() => handleMarkerActivate(destination)}
+                  onClick={() => flyToDestination(destination)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
@@ -221,11 +191,7 @@ export default function DestinationMap() {
                 >
                   <span className="destination-marker-pulse" aria-hidden="true" />
                   <span className="destination-marker-dot" aria-hidden="true" />
-                  {tooltipId === destination.id ? (
-                    <span className="destination-marker-tooltip" role="tooltip">
-                      {destination.name}
-                    </span>
-                  ) : null}
+                  <span className="destination-marker-label">{destination.name}</span>
                 </div>
               </Marker>
             ))}

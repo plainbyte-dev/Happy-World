@@ -67,7 +67,7 @@ function SiteFooter() {
           <div>
             <p className="eyebrow text-[#c9a227]">FOLLOW ALONG</p>
             <div className="mt-5 flex gap-3">
-              <a href="https://www.instagram.com" target="_blank" rel="noreferrer" className="social-link" aria-label="Instagram" data-testid="link-social-instagram"><FaInstagram size={17} /></a>
+              <a href="https://www.instagram.com/happyworld_tt" target="_blank" rel="noreferrer" className="social-link" aria-label="Instagram" data-testid="link-social-instagram"><FaInstagram size={17} /></a>
               <a href="https://www.facebook.com" target="_blank" rel="noreferrer" className="social-link" aria-label="Facebook" data-testid="link-social-facebook"><FaFacebook size={17} /></a>
             </div>
           </div>

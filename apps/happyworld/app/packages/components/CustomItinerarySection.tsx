@@ -1,8 +1,8 @@
 'use client';
 
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import { AlertTriangle, ChevronLeft, ChevronRight, Mail, NotebookPen, Plus, Send, Trash2 } from 'lucide-react';
-import { submitContactEnquiry } from '@/lib/contact';
+import { AlertTriangle, ChevronLeft, ChevronRight, Mail, NotebookPen, Plus, Trash2 } from 'lucide-react';
+import { useSiteContent } from '@/lib/site-content-context';
 
 export type CustomDay = {
   id: string;
@@ -54,10 +54,16 @@ function daysEqual(a: CustomDay[], b: Array<Omit<CustomDay, 'id'>>): boolean {
   });
 }
 
+function buildGmailComposeUrl(to: string, subject: string, body: string): string {
+  const params = new URLSearchParams({ view: 'cm', fs: '1', to, su: subject, body });
+  return `https://mail.google.com/mail/?${params.toString()}`;
+}
+
 const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomItinerarySectionProps>(function CustomItinerarySection(
   { packageName, fullWidth = false, initialDays },
   ref,
 ) {
+  const { footer } = useSiteContent();
   // Full-width means the outer split panel already made the user choose to expand
   // this exact section — starting it collapsed again would force a redundant
   // second "Open builder" click right after the first one.
@@ -75,7 +81,9 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
   const [email, setEmail] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const [unchangedWarningAcked, setUnchangedWarningAcked] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  // Set once a Gmail compose draft has been opened — holds the same link again as a
+  // fallback (and for "Edit and resend") rather than a plain boolean.
+  const [gmailUrl, setGmailUrl] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
   useImperativeHandle(ref, () => ({
@@ -87,7 +95,7 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
       setDays(newDays.length > 0 ? newDays.map((day) => ({ ...day, id: nextId() })) : [blankDay()]);
       setBaseline(newDays.length > 0 ? newDays : null);
       setUnchangedWarningAcked(false);
-      setStatus('idle');
+      setGmailUrl(null);
       setOpen(true);
       rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     },
@@ -111,8 +119,8 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
   const isUnchangedFromStandard = baseline !== null && daysEqual(days, baseline);
   const showUnchangedWarning = isUnchangedFromStandard && !unchangedWarningAcked;
 
-  const buildMessage = () => {
-    const lines = [`Custom itinerary idea for ${packageName}:`, ''];
+  const buildDaysText = () => {
+    const lines: string[] = [];
     days.forEach((day, i) => {
       if (!day.title.trim() && !day.detail.trim()) return;
       lines.push(`Day ${i + 1} — ${day.title.trim() || 'Untitled'}`);
@@ -130,15 +138,20 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
     return lines.join('\n').trim();
   };
 
-  const sendItinerary = async () => {
+  // Builds a ready-to-review draft and opens it in Gmail's own compose window — the
+  // traveler checks it over and hits Send themselves, rather than this app sending on
+  // their behalf. Their signed-in Gmail account becomes the actual "From"; name/email
+  // are still asked for and included in the body so the team knows who it's from even
+  // before the traveler confirms it's the same address they're signed into Gmail with.
+  const openInGmail = () => {
     if (showUnchangedWarning) {
       // First click on an unedited, copied-over itinerary just surfaces the warning —
-      // the traveler has to consciously confirm before it actually goes out.
+      // the traveler has to consciously confirm before a draft is opened.
       setUnchangedWarningAcked(true);
       return;
     }
     if (!name.trim() || !email.trim()) {
-      setFormError('Add your name and email so our team can reply.');
+      setFormError('Add your name and email so the team knows who this is from.');
       return;
     }
     if (!EMAIL_RE.test(email.trim())) {
@@ -146,12 +159,20 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
       return;
     }
     setFormError(null);
-    setStatus('sending');
-    const ok = await submitContactEnquiry(
-      { name: name.trim(), email: email.trim(), interest: packageName, message: buildMessage(), updates: false },
-      'custom-itinerary',
-    );
-    setStatus(ok ? 'sent' : 'error');
+
+    const subject = `Custom itinerary idea for ${packageName}`;
+    const body = [
+      'Hi Happy World Tours & Travel,',
+      '',
+      `Here's a custom itinerary idea for ${packageName}:`,
+      '',
+      buildDaysText(),
+      '',
+      `— ${name.trim()} (${email.trim()})`,
+    ].join('\n');
+    const url = buildGmailComposeUrl(footer.email, subject, body);
+    setGmailUrl(url);
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -182,7 +203,7 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
               )}
             </div>
             <p className="text-foreground/60 text-sm font-light mb-10 max-w-xl">
-              Sketch out the days the way you'd want them — add as many as you like, in the same format as the itinerary above, then send it straight to our team to shape into a real trip.
+              Sketch out the days the way you'd want them — add as many as you like, in the same format as the itinerary above, then open it as a ready-to-send email in Gmail to our team.
             </p>
 
             <div className="flex flex-col gap-4">
@@ -264,16 +285,24 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
               ))}
             </div>
 
-            {status === 'sent' ? (
-              <div className="glass-card rounded-3xl p-6 sm:p-8 mt-6 border-emerald-500/30 bg-emerald-500/5 flex items-start gap-4" data-testid="text-custom-itinerary-sent">
+            {gmailUrl ? (
+              <div className="glass-card rounded-3xl p-6 sm:p-8 mt-6 border-emerald-500/30 bg-emerald-500/5 flex items-start gap-4" data-testid="text-custom-itinerary-opened">
                 <span className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center flex-shrink-0">
-                  <Send size={18} />
+                  <Mail size={18} />
                 </span>
                 <div>
-                  <p className="font-serif font-bold text-foreground mb-1">Sent to our team</p>
+                  <p className="font-serif font-bold text-foreground mb-1">Opened in Gmail</p>
                   <p className="text-sm text-foreground/70 leading-relaxed">
-                    We&apos;ve emailed your itinerary idea to Happy World Tours &amp; Travel and will reply to {email} within two working days.
+                    We&apos;ve pre-filled a draft to Happy World Tours &amp; Travel with your itinerary — check it over and hit Send in Gmail whenever you&apos;re ready.
                   </p>
+                  <div className="mt-3 flex flex-wrap items-center gap-4">
+                    <a href={gmailUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-primary underline" data-testid="link-reopen-gmail">
+                      Didn&apos;t open? Click here
+                    </a>
+                    <button type="button" onClick={() => setGmailUrl(null)} className="text-sm font-bold text-foreground/70 hover:text-foreground" data-testid="button-edit-custom-itinerary">
+                      Edit and redo
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -317,9 +346,6 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
                   />
                 </div>
                 {formError ? <p className="text-xs text-destructive mt-2">{formError}</p> : null}
-                {status === 'error' ? (
-                  <p className="text-xs text-destructive mt-2">Something went wrong sending that — please try again in a moment.</p>
-                ) : null}
 
                 <div className="flex flex-wrap items-center gap-3 mt-6">
                   <button type="button" onClick={addDay} className="btn-outline inline-flex items-center gap-2" data-testid="button-add-custom-day">
@@ -327,13 +353,13 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
                   </button>
                   <button
                     type="button"
-                    onClick={sendItinerary}
-                    disabled={!hasContent || status === 'sending'}
+                    onClick={openInGmail}
+                    disabled={!hasContent}
                     className="btn-primary inline-flex items-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
                     data-testid="button-send-custom-itinerary"
                   >
                     <Mail size={16} />
-                    {status === 'sending' ? 'Sending…' : showUnchangedWarning ? 'Send anyway' : 'Send this itinerary'}
+                    {showUnchangedWarning ? 'Open in Gmail anyway' : 'Open in Gmail to send'}
                   </button>
                 </div>
               </>

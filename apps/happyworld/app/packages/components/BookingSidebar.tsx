@@ -18,15 +18,6 @@ export default function BookingSidebar({ detail, onEnquire, onBuildCustomTrip }:
   return (
     <div className="sticky-booking">
       <div className="glass-card rounded-4xl p-6 border-primary/20">
-        {/* Price */}
-        <div className="flex items-baseline gap-2 mb-1">
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">From</span>
-          <span className="font-serif text-4xl font-bold gold-text">
-            {detail.priceCurrency} {detail.priceFrom.toLocaleString()}
-          </span>
-        </div>
-        <p className="text-sm text-muted-foreground mb-6">per person</p>
-
         {/* Dates */}
         <div className="mb-5">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-muted-foreground mb-3">Dates</p>
@@ -88,8 +79,10 @@ export default function BookingSidebar({ detail, onEnquire, onBuildCustomTrip }:
         {/* Trust Signals */}
         <div className="mt-5 flex flex-col gap-2.5">
           {[
-            { icon: 'ShieldCheckIcon' as const, text: `${detail.quickFacts.difficulty} pace across ${detail.quickFacts.duration}` },
-            { icon: 'LockClosedIcon' as const, text: `Small groups, ${detail.quickFacts.groupSize}` },
+            detail.quickFacts.difficulty
+              ? { icon: 'ShieldCheckIcon' as const, text: `${detail.quickFacts.difficulty} pace across ${detail.quickFacts.duration}` }
+              : { icon: 'ShieldCheckIcon' as const, text: `${detail.quickFacts.duration} itinerary` },
+            ...(detail.quickFacts.groupSize ? [{ icon: 'LockClosedIcon' as const, text: `Small groups, ${detail.quickFacts.groupSize}` }] : []),
             { icon: 'PhoneIcon' as const, text: 'Local guide included throughout the trip' },
           ].map((item) => (
             <div key={item.text} className="flex items-center gap-2.5">

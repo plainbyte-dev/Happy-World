@@ -8,6 +8,7 @@ import SiteHeader from '@/components/sections/site-header';
 import MobileMenu from '@/components/sections/mobile-menu';
 import SiteFooter from '@/components/sections/site-footer';
 import PackageHero from '@/app/packages/components/PackageHero';
+import OverviewSection from '@/app/packages/components/OverviewSection';
 import GallerySection from '@/app/packages/components/GallerySection';
 import ItinerarySplitPanel, { type ItinerarySplitPanelHandle } from '@/app/packages/components/ItinerarySplitPanel';
 import AltitudeSection from '@/app/packages/components/AltitudeSection';
@@ -55,6 +56,14 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
 
       <div className="pkg-layout">
         <div className="pkg-main flex flex-col gap-16 sm:gap-20">
+          <OverviewSection
+            description={detail.description}
+            highlights={detail.highlights}
+            costIncludes={detail.costIncludes}
+            costExcludes={detail.costExcludes}
+            guide={detail.guide}
+            heroVideo={detail.heroVideo}
+          />
           <GallerySection images={detail.gallery} />
           {detail.bestTime.length > 0 && <WhenToVisit bestTime={detail.bestTime} />}
         </div>
@@ -75,13 +84,17 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
         />
       </div>
 
-      <div className="max-w-360 mx-auto px-5 pb-20">
-        <AltitudeSection altitudeProfile={detail.altitudeProfile} itinerary={detail.itinerary} />
-      </div>
+      {detail.altitudeProfile.length > 0 ? (
+        <div className="max-w-360 mx-auto px-5 pb-20">
+          <AltitudeSection altitudeProfile={detail.altitudeProfile} itinerary={detail.itinerary} />
+        </div>
+      ) : null}
 
-      <div className="max-w-360 mx-auto px-5 pb-20">
-        <FaqSection faqs={detail.faqs} />
-      </div>
+      {detail.faqs.length > 0 ? (
+        <div className="max-w-360 mx-auto px-5 pb-20">
+          <FaqSection faqs={detail.faqs} />
+        </div>
+      ) : null}
 
       {related.length > 0 ? (
         <section className="pkg-related">

@@ -3,6 +3,8 @@ import {
   Ban,
   BarChart3,
   Beaker,
+  Check,
+  CheckCircle,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -15,6 +17,7 @@ import {
   Lock,
   MapPin,
   Minus,
+  Mountain,
   Phone,
   Plus,
   PlusCircle,
@@ -50,6 +53,9 @@ const ICONS: Record<string, LucideIcon> = {
   ShieldCheckIcon: ShieldCheck,
   LockClosedIcon: Lock,
   PhoneIcon: Phone,
+  CheckIcon: Check,
+  CheckCircleIcon: CheckCircle,
+  MountainIcon: Mountain,
 };
 
 export type IconName = keyof typeof ICONS;

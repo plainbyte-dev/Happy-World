@@ -53,8 +53,6 @@ export type PackageDetail = {
   destinations: string[];
   heroImage: string;
   highlights: string[];
-  priceFrom: number;
-  priceCurrency: string;
   quickFacts: QuickFacts;
   bestTime: { month: string; rating: MonthRating; reason?: string }[];
   itinerary: ItineraryDay[];
@@ -63,7 +61,7 @@ export type PackageDetail = {
   costExcludes: string[];
   heroVideo?: string;
   gallery: GalleryImage[];
-  guide: GuideProfile;
+  guide?: GuideProfile;
   faqs: FaqItem[];
   mapImage: GalleryImage;
 };
@@ -91,38 +89,12 @@ export function slugify(name: string) {
     .replace(/(^-|-$)/g, '');
 }
 
-function difficultyForCategory(categoryKey: string): string {
-  if (categoryKey === 'kailash') return 'Challenging';
-  if (categoryKey === 'trekking') return 'Moderate';
-  return 'Easy';
-}
-
-function maxAltitudeForCategory(categoryKey: string, days: number): { label: string; peak: number; base: number } {
-  if (categoryKey === 'kailash') return { label: '5,630 M', peak: 5630, base: 1300 };
-  if (categoryKey === 'trekking') {
-    const peak = 3200 + days * 180;
-    return { label: `${peak.toLocaleString()} M`, peak, base: 850 };
-  }
-  return { label: '1,400 M', peak: 1400, base: 700 };
-}
-
-function costForCategory(categoryKey: string): { includes: string[]; excludes: string[] } {
-  if (categoryKey === 'kailash') {
-    return {
-      includes: ['Permits and pilgrimage fees', 'Overland transport and support vehicle', 'Guesthouse and camp accommodation', 'All meals during the yatra', 'Experienced guide and support crew'],
-      excludes: ['International and domestic flights', 'Nepal and China visa fees', 'Travel insurance', 'Personal gear and down jackets', 'Tips for guides and crew'],
-    };
-  }
-  if (categoryKey === 'trekking') {
-    return {
-      includes: ['Trekking permits and TIMS card', 'Teahouse or lodge accommodation', 'All meals on the trail', 'Licensed trekking guide and porter', 'Ground transport to and from the trailhead'],
-      excludes: ['International flights', 'Nepal visa fee', 'Travel and rescue insurance', 'Personal trekking gear', 'Tips for guide and porter'],
-    };
-  }
-  return {
-    includes: ['Private ground transport', 'Entrance fees to listed sites', 'English-speaking local guide', 'Accommodation as noted', 'Welcome tea on arrival'],
-    excludes: ['International flights', 'Nepal visa fee', 'Travel insurance', 'Meals not listed', 'Personal expenses and tips'],
-  };
+// Extracts the first number out of a free-text admin value like "5,630 m" —
+// there's no structured altitude field, just this string, so the estimated
+// profile chart below has to parse it to get a real peak instead of guessing one.
+function parseAltitudeMeters(raw: string): number | null {
+  const match = raw.replace(/,/g, '').match(/\d+/);
+  return match ? Number(match[0]) : null;
 }
 
 function altitudeProfileForPackage(days: number, base: number, peak: number, categoryKey: string): number[] {
@@ -139,50 +111,6 @@ function altitudeProfileForPackage(days: number, base: number, peak: number, cat
     }
     return Math.round(base + (peak - base) * 0.3 * Math.sin(t * Math.PI));
   });
-}
-
-// Avatars use DiceBear's deterministic SVG generator instead of stock photos — a guide
-// "photo" placeholder should never risk rendering unrelated scenery (or a stranger's face).
-function avatarImage(seed: string): string {
-  return `https://api.dicebear.com/9.x/notionists/svg?seed=${encodeURIComponent(seed)}&backgroundColor=f3efe6`;
-}
-
-function guideForCategory(pkg: FlatPackage): GuideProfile {
-  const slug = slugify(pkg.name);
-  const bios: Record<string, string> = {
-    kailash: `Born in the shadow of the Himalaya, our yatra leads have walked this pilgrimage route more times than they can count. They know the plateau's moods, the right pace for acclimatisation, and when the group needs to simply stop and look up.`,
-    trekking: `A certified trekking guide from the hills you'll be walking through, with years of leading small groups along this exact route. They read weather and altitude the way you'd read a map, and know every teahouse family by name.`,
-    'nepal-tours': `A Kathmandu Valley native with a deep well of local history and a habit of finding the quiet corner behind the crowd. They'll take you where the guidebooks don't, and explain why it matters.`,
-  };
-  return {
-    name: pkg.categoryKey === 'kailash' ? 'Tenzin Sherpa' : pkg.categoryKey === 'trekking' ? 'Pemba Gurung' : 'Sanjay Shrestha',
-    photo: avatarImage(`${slug}-guide`),
-    bio: bios[pkg.categoryKey] ?? bios['nepal-tours'],
-  };
-}
-
-function faqsForPackage(pkg: FlatPackage): FaqItem[] {
-  const common: FaqItem[] = [
-    {
-      question: 'Do I need a visa for Nepal?',
-      answer: 'Most nationalities can get a visa on arrival at Tribhuvan International Airport. Bring a passport photo and pay in cash or card — we\'ll send the exact requirements once you book.',
-    },
-    {
-      question: 'Can the group size or dates flex around us?',
-      answer: 'Yes — groups stay small (2–12 travellers) and we can run this as a private departure on dates that suit you. Use the booking form to tell us your window.',
-    },
-    {
-      question: 'What is your cancellation policy?',
-      answer: 'Full refund up to 30 days before departure, 50% up to 14 days before, and trip credit (not cash) inside 14 days. Travel insurance with cancellation cover is strongly recommended regardless.',
-    },
-  ];
-  const difficulty: FaqItem =
-    pkg.categoryKey === 'kailash'
-      ? { question: 'How hard is the Dolma La Pass crossing?', answer: 'It is the physical heart of the yatra — a long day at altitude. We build in acclimatisation days beforehand and the pace is set by the group, not the itinerary.' }
-      : pkg.categoryKey === 'trekking'
-        ? { question: 'How fit do I need to be for this trek?', answer: 'A moderate baseline fitness is enough — regular walking or hiking beforehand helps. Our guides adjust the daily pace to the group and altitude is gained gradually.' }
-        : { question: 'How much walking is involved?', answer: 'Comfortable walking shoes are all you need — most days mix short walks with private vehicle transfers between sights.' };
-  return [difficulty, ...common];
 }
 
 // Live packages published from the admin dashboard.
@@ -203,9 +131,14 @@ type ApiItineraryDay = {
 
 type ApiBestTimeEntry = { month: string; rating: string; reason?: string };
 
+type ApiGuide = { name: string; photo: string; bio: string };
+
+type ApiFaq = { question: string; answer: string };
+
 type ApiPackage = {
   _id: string;
   title: string;
+  description: string;
   destinations: string[];
   duration: string;
   itinerary: ApiItineraryDay[];
@@ -214,6 +147,15 @@ type ApiPackage = {
   coverImage: string;
   bestTimeToVisit?: ApiBestTimeEntry[];
   category?: string;
+  highlights?: string[];
+  difficulty?: string;
+  groupSize?: string;
+  maxAltitude?: string;
+  costIncludes?: string[];
+  costExcludes?: string[];
+  heroVideo?: string;
+  guide?: ApiGuide;
+  faqs?: ApiFaq[];
 };
 
 const KNOWN_CATEGORY_KEYS = ['nepal-tours', 'trekking', 'kailash'];
@@ -239,18 +181,6 @@ function bestTimeFromApi(entries: ApiBestTimeEntry[]): { month: string; rating: 
       rating: API_RATING_TO_MONTH_RATING[entry.rating.toLowerCase()] ?? 'fair',
       reason: entry.reason?.trim() || undefined,
     }));
-}
-
-async function fetchApiPackageDetail(id: string): Promise<ApiPackage | null> {
-  try {
-    const res = await fetch(`${API_BASE}/api/packages/${id}`, { next: { revalidate: 300 } });
-    if (!res.ok) return null;
-    const json = (await res.json()) as { success: boolean; data: ApiPackage };
-    if (!json.success || !json.data) return null;
-    return json.data;
-  } catch {
-    return null;
-  }
 }
 
 function formatList(items: string[]): string {
@@ -311,7 +241,7 @@ function apiPackageToFlat(pkg: ApiPackage, tripsMenu: SiteContent['tripsMenu']):
   const categoryLabel = tripsMenu.find((category) => category.key === categoryKey)?.label ?? 'Nepal Tours';
   return {
     name: pkg.title.trim(),
-    description: `A ${pkg.itinerary.length}-day journey through ${destinationLabel}, from arrival to departure.`,
+    description: pkg.description.trim(),
     categoryLabel,
     categoryKey,
     destinationLabel,
@@ -323,8 +253,9 @@ function apiPackageToFlat(pkg: ApiPackage, tripsMenu: SiteContent['tripsMenu']):
 function generateDetailFromApi(pkg: ApiPackage, tripsMenu: SiteContent['tripsMenu']): PackageDetail {
   const flat = apiPackageToFlat(pkg, tripsMenu);
   const days = pkg.itinerary.length;
-  const { label, peak, base } = maxAltitudeForCategory(flat.categoryKey, days);
-  const { includes, excludes } = costForCategory(flat.categoryKey);
+  const maxAltitude = pkg.maxAltitude?.trim() || '';
+  const peak = parseAltitudeMeters(maxAltitude);
+  const base = peak !== null ? Math.max(300, Math.round(peak * 0.25)) : 0;
   const heroImage = resolveApiImage(pkg.coverImage);
 
   const itinerary: ItineraryDay[] = pkg.itinerary.map((day) => {
@@ -353,25 +284,29 @@ function generateDetailFromApi(pkg: ApiPackage, tripsMenu: SiteContent['tripsMen
     destinationHref: flat.destinationHref,
     destinations: flat.destinations,
     heroImage,
-    highlights: [`Guided time in and around ${flat.destinationLabel}`, 'Small-group pace with a local guide throughout'],
-    priceFrom: pkg.cost.from,
-    priceCurrency: pkg.cost.currency,
+    // Only ever real, admin-entered highlights — no fabricated filler. An empty
+    // list just means the section hides on the detail page.
+    highlights: (pkg.highlights ?? []).filter(Boolean),
     quickFacts: {
       duration: `${days} Day${days > 1 ? 's' : ''}${days > 1 ? ` / ${days - 1} Night${days - 1 > 1 ? 's' : ''}` : ''}`,
-      maxAltitude: label,
-      difficulty: difficultyForCategory(flat.categoryKey),
-      groupSize: '2–12 travellers',
+      maxAltitude,
+      difficulty: pkg.difficulty?.trim() || '',
+      groupSize: pkg.groupSize?.trim() || '',
     },
     // Only ever real, admin-entered ratings — no fabricated per-category fallback.
     // When a package hasn't set this, `bestTime` is empty and the section hides.
     bestTime: pkg.bestTimeToVisit && pkg.bestTimeToVisit.length > 0 ? bestTimeFromApi(pkg.bestTimeToVisit) : [],
     itinerary,
-    altitudeProfile: altitudeProfileForPackage(days, base, peak, flat.categoryKey),
-    costIncludes: includes,
-    costExcludes: excludes,
+    // No real per-day elevation data exists (itinerary days don't collect lat/lng),
+    // so this stays an estimated shape — but anchored to the real admin max altitude
+    // instead of a guessed one. No real max altitude means no chart at all.
+    altitudeProfile: peak !== null ? altitudeProfileForPackage(days, base, peak, flat.categoryKey) : [],
+    costIncludes: (pkg.costIncludes ?? []).filter(Boolean),
+    costExcludes: (pkg.costExcludes ?? []).filter(Boolean),
+    heroVideo: pkg.heroVideo?.trim() || undefined,
     gallery: galleryForApiPackage(pkg, flat, heroImage),
-    guide: guideForCategory(flat),
-    faqs: faqsForPackage(flat),
+    guide: pkg.guide ? { name: pkg.guide.name, photo: resolveApiImage(pkg.guide.photo), bio: pkg.guide.bio } : undefined,
+    faqs: pkg.faqs ?? [],
     mapImage: { src: heroImage, alt: `${flat.name} — the ${flat.destinationLabel} region` },
   };
 }
@@ -386,14 +321,7 @@ async function fetchApiPackages(): Promise<PackageDetail[]> {
     const json = (await res.json()) as { success: boolean; data: ApiPackage[] };
     if (!json.success || !Array.isArray(json.data)) return [];
     const published = json.data.filter((pkg) => pkg.status === 'published');
-    // The list endpoint omits bestTimeToVisit and category — fetch each package's detail to fill them in.
-    const enriched = await Promise.all(
-      published.map(async (pkg) => {
-        const detail = await fetchApiPackageDetail(pkg._id);
-        return detail ? { ...pkg, bestTimeToVisit: detail.bestTimeToVisit, category: detail.category } : pkg;
-      }),
-    );
-    return enriched.map((pkg) => generateDetailFromApi(pkg, siteContent.tripsMenu));
+    return published.map((pkg) => generateDetailFromApi(pkg, siteContent.tripsMenu));
   } catch {
     return [];
   }

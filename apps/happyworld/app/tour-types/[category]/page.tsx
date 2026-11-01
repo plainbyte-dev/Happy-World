@@ -85,9 +85,7 @@ async function TourTypePage({ params }: { params: Promise<{ category: string }> 
                   <div className="package-card-body">
                     <p className="package-card-destination">{pkg.destinationLabel}</p>
                     <h3 className="package-card-name">{pkg.name}</h3>
-                    <p className="package-card-meta">
-                      {pkg.quickFacts.duration} · From {pkg.priceCurrency} {pkg.priceFrom.toLocaleString()}
-                    </p>
+                    <p className="package-card-meta">{pkg.quickFacts.duration}</p>
                     <span className="package-card-link">
                       View itinerary <ArrowRight size={14} />
                     </span>

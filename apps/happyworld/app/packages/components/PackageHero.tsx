@@ -66,14 +66,24 @@ export default function PackageHero({ detail }: PackageHeroProps) {
             <Icon name="MapPinIcon" size={16} className="text-primary" />
             {detail.destinationLabel}
           </div>
-          <div className="flex items-center gap-2 text-white/70 text-sm">
-            <Icon name="UserGroupIcon" size={16} className="text-primary" />
-            {detail.quickFacts.groupSize}
-          </div>
-          <div className="flex items-center gap-2 text-white/70 text-sm">
-            <Icon name="ChartBarIcon" size={16} className="text-primary" />
-            {detail.quickFacts.difficulty} difficulty
-          </div>
+          {detail.quickFacts.groupSize ? (
+            <div className="flex items-center gap-2 text-white/70 text-sm">
+              <Icon name="UserGroupIcon" size={16} className="text-primary" />
+              {detail.quickFacts.groupSize}
+            </div>
+          ) : null}
+          {detail.quickFacts.difficulty ? (
+            <div className="flex items-center gap-2 text-white/70 text-sm">
+              <Icon name="ChartBarIcon" size={16} className="text-primary" />
+              {detail.quickFacts.difficulty} difficulty
+            </div>
+          ) : null}
+          {detail.quickFacts.maxAltitude ? (
+            <div className="flex items-center gap-2 text-white/70 text-sm">
+              <Icon name="MountainIcon" size={16} className="text-primary" />
+              Max altitude {detail.quickFacts.maxAltitude}
+            </div>
+          ) : null}
         </div>
       </div>
 

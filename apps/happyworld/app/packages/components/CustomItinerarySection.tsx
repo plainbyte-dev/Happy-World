@@ -1,8 +1,8 @@
 'use client';
 
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight, NotebookPen, Plus, Send, Trash2 } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, ChevronRight, Mail, NotebookPen, Plus, Send, Trash2 } from 'lucide-react';
+import { submitContactEnquiry } from '@/lib/contact';
 
 export type CustomDay = {
   id: string;
@@ -42,11 +42,22 @@ export const MEALS_OPTIONS = ['No meals included', 'Breakfast only', 'Breakfast 
 export const STAY_OPTIONS = ['Teahouse', 'Guesthouse', 'Lodge', 'Hotel', 'Homestay', 'Camp / Tented camp'];
 export const TRANSPORT_OPTIONS = ['On foot', 'Private vehicle', 'Support vehicle', 'Shared jeep', 'Public bus', 'Domestic flight'];
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Ignores `id` — only the content a traveler could actually type matters for
+// telling "copied from the standard itinerary, unedited" apart from a real change.
+function daysEqual(a: CustomDay[], b: Array<Omit<CustomDay, 'id'>>): boolean {
+  if (a.length !== b.length) return false;
+  return a.every((day, i) => {
+    const base = b[i];
+    return day.title === base.title && day.detail === base.detail && day.meals === base.meals && day.stay === base.stay && day.transport === base.transport;
+  });
+}
+
 const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomItinerarySectionProps>(function CustomItinerarySection(
   { packageName, fullWidth = false, initialDays },
   ref,
 ) {
-  const router = useRouter();
   // Full-width means the outer split panel already made the user choose to expand
   // this exact section — starting it collapsed again would force a redundant
   // second "Open builder" click right after the first one.
@@ -54,6 +65,17 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
   const [days, setDays] = useState<CustomDay[]>(() =>
     initialDays && initialDays.length > 0 ? initialDays.map((day) => ({ ...day, id: nextId() })) : [blankDay()],
   );
+  // Snapshot of the standard itinerary this builder was copied from (via "Customize this
+  // itinerary"), used only to warn when nothing's actually been changed yet. Null when the
+  // builder was opened blank, since "unchanged" has no meaning there.
+  const [baseline, setBaseline] = useState<Array<Omit<CustomDay, 'id'>> | null>(() =>
+    initialDays && initialDays.length > 0 ? initialDays : null,
+  );
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
+  const [unchangedWarningAcked, setUnchangedWarningAcked] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const rootRef = useRef<HTMLDivElement>(null);
 
   useImperativeHandle(ref, () => ({
@@ -63,6 +85,9 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
     },
     loadDays: (newDays) => {
       setDays(newDays.length > 0 ? newDays.map((day) => ({ ...day, id: nextId() })) : [blankDay()]);
+      setBaseline(newDays.length > 0 ? newDays : null);
+      setUnchangedWarningAcked(false);
+      setStatus('idle');
       setOpen(true);
       rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     },
@@ -70,14 +95,23 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
 
   const updateDay = (id: string, field: keyof Omit<CustomDay, 'id'>, value: string) => {
     setDays((prev) => prev.map((day) => (day.id === id ? { ...day, [field]: value } : day)));
+    setUnchangedWarningAcked(false);
   };
 
-  const addDay = () => setDays((prev) => [...prev, blankDay()]);
-  const removeDay = (id: string) => setDays((prev) => (prev.length > 1 ? prev.filter((day) => day.id !== id) : prev));
+  const addDay = () => {
+    setDays((prev) => [...prev, blankDay()]);
+    setUnchangedWarningAcked(false);
+  };
+  const removeDay = (id: string) => {
+    setDays((prev) => (prev.length > 1 ? prev.filter((day) => day.id !== id) : prev));
+    setUnchangedWarningAcked(false);
+  };
 
   const hasContent = days.some((day) => day.title.trim() || day.detail.trim());
+  const isUnchangedFromStandard = baseline !== null && daysEqual(days, baseline);
+  const showUnchangedWarning = isUnchangedFromStandard && !unchangedWarningAcked;
 
-  const sendItinerary = () => {
+  const buildMessage = () => {
     const lines = [`Custom itinerary idea for ${packageName}:`, ''];
     days.forEach((day, i) => {
       if (!day.title.trim() && !day.detail.trim()) return;
@@ -93,8 +127,31 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
       if (meta) lines.push(meta);
       lines.push('');
     });
-    const message = lines.join('\n').trim();
-    router.push(`/contact?message=${encodeURIComponent(message)}&source=custom-itinerary`);
+    return lines.join('\n').trim();
+  };
+
+  const sendItinerary = async () => {
+    if (showUnchangedWarning) {
+      // First click on an unedited, copied-over itinerary just surfaces the warning —
+      // the traveler has to consciously confirm before it actually goes out.
+      setUnchangedWarningAcked(true);
+      return;
+    }
+    if (!name.trim() || !email.trim()) {
+      setFormError('Add your name and email so our team can reply.');
+      return;
+    }
+    if (!EMAIL_RE.test(email.trim())) {
+      setFormError("That email address doesn't look right.");
+      return;
+    }
+    setFormError(null);
+    setStatus('sending');
+    const ok = await submitContactEnquiry(
+      { name: name.trim(), email: email.trim(), interest: packageName, message: buildMessage(), updates: false },
+      'custom-itinerary',
+    );
+    setStatus(ok ? 'sent' : 'error');
   };
 
   return (
@@ -207,20 +264,80 @@ const CustomItinerarySection = forwardRef<CustomItinerarySectionHandle, CustomIt
               ))}
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 mt-6">
-              <button type="button" onClick={addDay} className="btn-outline inline-flex items-center gap-2" data-testid="button-add-custom-day">
-                <Plus size={16} /> Add a day
-              </button>
-              <button
-                type="button"
-                onClick={sendItinerary}
-                disabled={!hasContent}
-                className="btn-primary inline-flex items-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
-                data-testid="button-send-custom-itinerary"
-              >
-                <Send size={16} /> Send this itinerary
-              </button>
-            </div>
+            {status === 'sent' ? (
+              <div className="glass-card rounded-3xl p-6 sm:p-8 mt-6 border-emerald-500/30 bg-emerald-500/5 flex items-start gap-4" data-testid="text-custom-itinerary-sent">
+                <span className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                  <Send size={18} />
+                </span>
+                <div>
+                  <p className="font-serif font-bold text-foreground mb-1">Sent to our team</p>
+                  <p className="text-sm text-foreground/70 leading-relaxed">
+                    We&apos;ve emailed your itinerary idea to Happy World Tours &amp; Travel and will reply to {email} within two working days.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {showUnchangedWarning ? (
+                  <div
+                    className="glass-card rounded-3xl p-5 sm:p-6 mt-6 border-amber-500/30 bg-amber-500/5 flex items-start gap-3"
+                    data-testid="warning-itinerary-unchanged"
+                  >
+                    <AlertTriangle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-foreground text-sm mb-1">This still matches the standard itinerary</p>
+                      <p className="text-sm text-foreground/70 leading-relaxed">
+                        Tweak a day or two to tell us what you&apos;d like different — or if the standard plan already works for you, send it as is and we&apos;ll take it from here.
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                  <input
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      setFormError(null);
+                    }}
+                    placeholder="Your name"
+                    className="bg-transparent border-b border-border pb-2 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-primary transition-colors"
+                    data-testid="input-custom-itinerary-name"
+                  />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setFormError(null);
+                    }}
+                    placeholder="Your email"
+                    className="bg-transparent border-b border-border pb-2 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-primary transition-colors"
+                    data-testid="input-custom-itinerary-email"
+                  />
+                </div>
+                {formError ? <p className="text-xs text-destructive mt-2">{formError}</p> : null}
+                {status === 'error' ? (
+                  <p className="text-xs text-destructive mt-2">Something went wrong sending that — please try again in a moment.</p>
+                ) : null}
+
+                <div className="flex flex-wrap items-center gap-3 mt-6">
+                  <button type="button" onClick={addDay} className="btn-outline inline-flex items-center gap-2" data-testid="button-add-custom-day">
+                    <Plus size={16} /> Add a day
+                  </button>
+                  <button
+                    type="button"
+                    onClick={sendItinerary}
+                    disabled={!hasContent || status === 'sending'}
+                    className="btn-primary inline-flex items-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
+                    data-testid="button-send-custom-itinerary"
+                  >
+                    <Mail size={16} />
+                    {status === 'sending' ? 'Sending…' : showUnchangedWarning ? 'Send anyway' : 'Send this itinerary'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <button

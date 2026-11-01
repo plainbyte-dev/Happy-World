@@ -494,11 +494,6 @@
   .pkg-related { padding: 80px 20px; }
 }
 .pkg-related-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 28px; }
-.pkg-related-card { display: block; background: #1a2650; border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 22px; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
-.pkg-related-card:hover { transform: translateY(-3px); box-shadow: 0 18px 40px rgba(0,0,0,.25); border-color: rgba(201,162,39,.4); }
-.pkg-related-name { font-family: var(--app-font-serif); font-weight: 700; font-size: 16px; color: #ffffff; }
-.pkg-related-desc { margin-top: 6px; font-size: 13px; color: #c3c9e6; line-height: 1.5; }
-.pkg-related-meta { margin-top: 14px; font-family: var(--app-font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #c9a227; }
 @media (min-width: 1024px) {
   .pkg-layout { grid-template-columns: 1fr 320px; }
   .pkg-related-grid { grid-template-columns: repeat(3, 1fr); }

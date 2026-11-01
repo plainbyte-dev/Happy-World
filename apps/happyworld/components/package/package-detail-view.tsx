@@ -103,10 +103,18 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
             <h2 className="pkg-related-title">Related packages</h2>
             <div className="pkg-related-grid">
               {related.map((item) => (
-                <Link key={item.slug} href={`/packages/${item.slug}`} className="pkg-related-card" data-testid={`link-related-${item.slug}`}>
-                  <p className="pkg-related-name">{item.name}</p>
-                  <p className="pkg-related-desc">{item.description}</p>
-                  <p className="pkg-related-meta">{item.destinationLabel} · {item.quickFacts.duration}</p>
+                <Link key={item.slug} href={`/packages/${item.slug}`} className="package-card" data-testid={`link-related-${item.slug}`}>
+                  <div className="package-card-image">
+                    <img src={item.heroImage} alt={item.name} loading="lazy" />
+                  </div>
+                  <div className="package-card-body">
+                    <p className="package-card-destination">{item.destinationLabel}</p>
+                    <h3 className="package-card-name">{item.name}</h3>
+                    <p className="package-card-meta">{item.quickFacts.duration}</p>
+                    <span className="package-card-link">
+                      View itinerary <ArrowRight size={14} />
+                    </span>
+                  </div>
                 </Link>
               ))}
             </div>

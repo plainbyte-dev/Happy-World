@@ -17,11 +17,35 @@ type ItenarySectionProps = {
 
 type ViewMode = 'detailed' | 'outline';
 
+// Only worth truncating once there's enough text that a reader would actually
+// benefit from a preview — a one-line description just renders in full.
+const TRUNCATE_MIN_WORDS = 20;
+
+function splitHalf(text: string): { preview: string; isLong: boolean } {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length <= TRUNCATE_MIN_WORDS) return { preview: text, isLong: false };
+  const half = Math.ceil(words.length / 2);
+  return { preview: `${words.slice(0, half).join(' ')}…`, isLong: true };
+}
+
 export default function ItenarySection({ itinerary, destinationLabel, heroImage, packageName, duration, onCustomize }: ItenarySectionProps) {
   const [expandedDays, setExpandedDays] = useState<Set<number>>(() => new Set(itinerary[0] ? [itinerary[0].day] : []));
+  const [expandedDetails, setExpandedDetails] = useState<Set<number>>(new Set());
   const [viewMode, setViewMode] = useState<ViewMode>('detailed');
   const [downloading, setDownloading] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
+
+  const toggleDetail = (dayNumber: number) => {
+    setExpandedDetails((prev) => {
+      const next = new Set(prev);
+      if (next.has(dayNumber)) {
+        next.delete(dayNumber);
+      } else {
+        next.add(dayNumber);
+      }
+      return next;
+    });
+  };
 
   const allOpen = itinerary.length > 0 && itinerary.every((day) => expandedDays.has(day.day));
 
@@ -244,6 +268,8 @@ export default function ItenarySection({ itinerary, destinationLabel, heroImage,
           {itinerary.map((day, i) => {
             const isOpen = expandedDays.has(day.day);
             const meals = day.meals === '—' ? [] : day.meals.split(', ');
+            const isDetailExpanded = expandedDetails.has(day.day);
+            const { preview, isLong } = splitHalf(day.detail);
             return (
               <div
                 key={day.day}
@@ -294,7 +320,17 @@ export default function ItenarySection({ itinerary, destinationLabel, heroImage,
                     <div className="flex flex-col gap-4">
                       <div>
                         <p className="text-xs font-bold uppercase tracking-[0.3em] text-muted-foreground mb-3">Highlights</p>
-                        <p className="text-sm text-foreground/70 leading-relaxed">{day.detail}</p>
+                        <p className="text-sm text-foreground/70 leading-relaxed">{isLong && !isDetailExpanded ? preview : day.detail}</p>
+                        {isLong ? (
+                          <button
+                            type="button"
+                            onClick={() => toggleDetail(day.day)}
+                            className="mt-2 text-xs font-bold text-primary hover:underline"
+                            data-testid={`button-toggle-detail-${day.day}`}
+                          >
+                            {isDetailExpanded ? 'Show less' : 'Read full day'}
+                          </button>
+                        ) : null}
                       </div>
 
                       {day.keyActivities && day.keyActivities.length > 0 ? (

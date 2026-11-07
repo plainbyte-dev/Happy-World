@@ -3,14 +3,13 @@ import type { GuideProfile } from '@/lib/packages';
 
 type OverviewSectionProps = {
   description: string;
-  highlights: string[];
   costIncludes: string[];
   costExcludes: string[];
   guide?: GuideProfile;
   heroVideo?: string;
 };
 
-export default function OverviewSection({ description, highlights, costIncludes, costExcludes, guide, heroVideo }: OverviewSectionProps) {
+export default function OverviewSection({ description, costIncludes, costExcludes, guide, heroVideo }: OverviewSectionProps) {
   const hasCosts = costIncludes.length > 0 || costExcludes.length > 0;
 
   return (
@@ -27,20 +26,6 @@ export default function OverviewSection({ description, highlights, costIncludes,
       {heroVideo ? (
         <div className="glass-card rounded-3xl overflow-hidden">
           <video src={heroVideo} controls className="w-full h-auto max-h-[480px] bg-black" />
-        </div>
-      ) : null}
-
-      {highlights.length > 0 ? (
-        <div>
-          <h3 className="font-bold text-sm uppercase tracking-[0.3em] text-muted-foreground mb-5">Trip Highlights</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {highlights.map((item) => (
-              <div key={item} className="flex items-start gap-3 glass-card rounded-2xl p-4">
-                <Icon name="CheckCircleIcon" size={18} className="text-primary flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-foreground/80 leading-relaxed">{item}</span>
-              </div>
-            ))}
-          </div>
         </div>
       ) : null}
 

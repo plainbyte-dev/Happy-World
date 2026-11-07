@@ -9,6 +9,7 @@ import MobileMenu from '@/components/sections/mobile-menu';
 import SiteFooter from '@/components/sections/site-footer';
 import PackageHero from '@/app/packages/components/PackageHero';
 import OverviewSection from '@/app/packages/components/OverviewSection';
+import TripHighlightsSection from '@/app/packages/components/TripHighlightsSection';
 import GallerySection from '@/app/packages/components/GallerySection';
 import ItinerarySplitPanel, { type ItinerarySplitPanelHandle } from '@/app/packages/components/ItinerarySplitPanel';
 import AltitudeSection from '@/app/packages/components/AltitudeSection';
@@ -59,7 +60,6 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
           <GallerySection images={detail.gallery} />
           <OverviewSection
             description={detail.description}
-            highlights={detail.highlights}
             costIncludes={detail.costIncludes}
             costExcludes={detail.costExcludes}
             guide={detail.guide}
@@ -83,6 +83,12 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
           duration={detail.quickFacts.duration}
         />
       </div>
+
+      {detail.highlights.length > 0 ? (
+        <div className="max-w-360 mx-auto px-5 pb-20">
+          <TripHighlightsSection highlights={detail.highlights} />
+        </div>
+      ) : null}
 
       <div className="max-w-360 mx-auto px-5 pb-20">
         <AltitudeSection altitudeProfile={detail.altitudeProfile} itinerary={detail.itinerary} />

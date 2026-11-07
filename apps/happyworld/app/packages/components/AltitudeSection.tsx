@@ -147,11 +147,14 @@ export default function AltitudeSection({ altitudeProfile, itinerary }: Altitude
         <span> You Go</span>
       </h2>
       <p className="text-foreground/60 text-sm font-light mb-10 max-w-xl">
-        Altitude affects everyone differently. Here's how elevation changes day by day, so you can prepare and stay
-        comfortable throughout the trip.
+        {altitudeProfile.length > 0
+          ? "Altitude affects everyone differently. Here's how elevation changes day by day, so you can prepare and stay comfortable throughout the trip."
+          : 'Altitude affects everyone differently — a few simple habits go a long way toward staying comfortable throughout the trip.'}
       </p>
 
-      {/* Altitude Line Chart */}
+      {/* Altitude Line Chart — only when every day has a real, admin-entered altitude;
+          no fabricated/estimated profile is ever shown. */}
+      {altitudeProfile.length > 0 ? (
       <div className="glass-card rounded-3xl p-6 sm:p-8 mb-8 reveal-up">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <h3 className="font-bold text-sm uppercase tracking-[0.3em] text-muted-foreground">Elevation Profile — Day by Day</h3>
@@ -277,6 +280,7 @@ export default function AltitudeSection({ altitudeProfile, itinerary }: Altitude
           </p>
         </div>
       </div>
+      ) : null}
 
       {/* Acclimatization Tips */}
       <div className="reveal-up stagger-2">

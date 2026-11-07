@@ -84,11 +84,9 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
         />
       </div>
 
-      {detail.altitudeProfile.length > 0 ? (
-        <div className="max-w-360 mx-auto px-5 pb-20">
-          <AltitudeSection altitudeProfile={detail.altitudeProfile} itinerary={detail.itinerary} />
-        </div>
-      ) : null}
+      <div className="max-w-360 mx-auto px-5 pb-20">
+        <AltitudeSection altitudeProfile={detail.altitudeProfile} itinerary={detail.itinerary} />
+      </div>
 
       {detail.faqs.length > 0 ? (
         <div className="max-w-360 mx-auto px-5 pb-20">

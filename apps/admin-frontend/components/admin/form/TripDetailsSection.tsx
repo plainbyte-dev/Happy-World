@@ -69,6 +69,21 @@ export function TripDetailsSection({ control, register, errors }: TripDetailsSec
         <input id="heroVideo" className={inputClass} placeholder="https://..." {...register('heroVideo')} />
         <FieldError message={errors.heroVideo?.message} />
       </div>
+
+      <div className="mt-4">
+        <label htmlFor="notice" className={labelClass}>
+          Notice
+        </label>
+        <textarea
+          id="notice"
+          rows={2}
+          maxLength={300}
+          className={inputClass}
+          placeholder="e.g. Monsoon-season trips may reroute due to landslides — shown as an alert on the package page"
+          {...register('notice')}
+        />
+        <FieldError message={errors.notice?.message} />
+      </div>
     </SectionCard>
   );
 }

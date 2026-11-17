@@ -88,6 +88,7 @@ const packageSchema = new Schema(
     costIncludes: { type: [String], default: [] },
     costExcludes: { type: [String], default: [] },
     heroVideo: { type: String, default: '' },
+    notice: { type: String, default: '' },
     guide: { type: guideSchema },
     faqs: { type: [faqSchema], default: [] },
   },

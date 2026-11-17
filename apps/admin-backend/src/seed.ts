@@ -118,6 +118,7 @@ const pokharaPackage: PackageInput = {
     },
   ],
   heroVideo: '',
+  notice: '',
 };
 
 const chitwanPackage: PackageInput = {
@@ -198,6 +199,7 @@ const chitwanPackage: PackageInput = {
     },
   ],
   heroVideo: '',
+  notice: '',
 };
 
 const kathmanduLumbiniPackage: PackageInput = {
@@ -329,6 +331,7 @@ const kathmanduLumbiniPackage: PackageInput = {
     },
   ],
   heroVideo: '',
+  notice: '',
 };
 
 const samplePackages = [pokharaPackage, chitwanPackage, kathmanduLumbiniPackage];

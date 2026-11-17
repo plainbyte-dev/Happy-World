@@ -126,6 +126,7 @@ export const packageInputSchema = z
     costIncludes: z.array(z.string().min(1)).default([]),
     costExcludes: z.array(z.string().min(1)).default([]),
     heroVideo: z.string().default(''),
+    notice: z.string().trim().max(300, 'Notice must be at most 300 characters').default(''),
     guide: optionalGuideSchema,
     faqs: z.array(faqSchema).default([]),
   })

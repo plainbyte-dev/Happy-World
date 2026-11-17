@@ -61,6 +61,7 @@ export type PackageDetail = {
   costIncludes: string[];
   costExcludes: string[];
   heroVideo?: string;
+  notice?: string;
   gallery: GalleryImage[];
   guide?: GuideProfile;
   faqs: FaqItem[];
@@ -132,6 +133,7 @@ type ApiPackage = {
   costIncludes?: string[];
   costExcludes?: string[];
   heroVideo?: string;
+  notice?: string;
   guide?: ApiGuide;
   faqs?: ApiFaq[];
 };
@@ -284,6 +286,7 @@ function generateDetailFromApi(pkg: ApiPackage, tripsMenu: SiteContent['tripsMen
     costIncludes: (pkg.costIncludes ?? []).filter(Boolean),
     costExcludes: (pkg.costExcludes ?? []).filter(Boolean),
     heroVideo: pkg.heroVideo?.trim() || undefined,
+    notice: pkg.notice?.trim() || undefined,
     gallery: galleryForApiPackage(pkg, flat, heroImage),
     guide: pkg.guide ? { name: pkg.guide.name, photo: resolveApiImage(pkg.guide.photo), bio: pkg.guide.bio } : undefined,
     faqs: pkg.faqs ?? [],

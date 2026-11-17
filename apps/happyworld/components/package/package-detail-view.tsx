@@ -7,6 +7,7 @@ import { ArrowRight } from 'lucide-react';
 import SiteHeader from '@/components/sections/site-header';
 import MobileMenu from '@/components/sections/mobile-menu';
 import SiteFooter from '@/components/sections/site-footer';
+import Icon from '@/components/ui/AppIcon';
 import PackageHero from '@/app/packages/components/PackageHero';
 import OverviewSection from '@/app/packages/components/OverviewSection';
 import TripHighlightsSection from '@/app/packages/components/TripHighlightsSection';
@@ -55,6 +56,18 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
       <MobileMenu open={menuOpen} onNavigate={() => setMenuOpen(false)} onEnquire={goToEnquiry} />
 
       <PackageHero detail={detail} />
+
+      {detail.notice ? (
+        <div className="max-w-360 mx-auto px-5 pt-6 sm:pt-8">
+          <div
+            className="flex items-start gap-3 rounded-2xl border border-amber-600/20 bg-amber-600/5 p-4"
+            data-testid="text-package-notice"
+          >
+            <Icon name="ExclamationTriangleIcon" size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-foreground/80 leading-relaxed">{detail.notice}</p>
+          </div>
+        </div>
+      ) : null}
 
       <div className="pkg-layout">
         <div className="pkg-main flex flex-col gap-16 sm:gap-20">

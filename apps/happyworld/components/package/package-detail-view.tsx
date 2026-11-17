@@ -10,6 +10,7 @@ import SiteFooter from '@/components/sections/site-footer';
 import PackageHero from '@/app/packages/components/PackageHero';
 import OverviewSection from '@/app/packages/components/OverviewSection';
 import TripHighlightsSection from '@/app/packages/components/TripHighlightsSection';
+import WhatsIncludedSection from '@/app/packages/components/WhatsIncludedSection';
 import GallerySection from '@/app/packages/components/GallerySection';
 import ItinerarySplitPanel, { type ItinerarySplitPanelHandle } from '@/app/packages/components/ItinerarySplitPanel';
 import AltitudeSection from '@/app/packages/components/AltitudeSection';
@@ -58,13 +59,8 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
       <div className="pkg-layout">
         <div className="pkg-main flex flex-col gap-16 sm:gap-20">
           <GallerySection images={detail.gallery} />
-          <OverviewSection
-            description={detail.description}
-            costIncludes={detail.costIncludes}
-            costExcludes={detail.costExcludes}
-            guide={detail.guide}
-            heroVideo={detail.heroVideo}
-          />
+          <OverviewSection description={detail.description} guide={detail.guide} heroVideo={detail.heroVideo} />
+          {detail.highlights.length > 0 && <TripHighlightsSection highlights={detail.highlights} />}
           {detail.bestTime.length > 0 && <WhenToVisit bestTime={detail.bestTime} />}
         </div>
 
@@ -84,9 +80,9 @@ function PackageDetailView({ detail, related }: PackageDetailViewProps) {
         />
       </div>
 
-      {detail.highlights.length > 0 ? (
+      {detail.costIncludes.length > 0 || detail.costExcludes.length > 0 ? (
         <div className="max-w-360 mx-auto px-5 pb-20">
-          <TripHighlightsSection highlights={detail.highlights} />
+          <WhatsIncludedSection costIncludes={detail.costIncludes} costExcludes={detail.costExcludes} />
         </div>
       ) : null}
 

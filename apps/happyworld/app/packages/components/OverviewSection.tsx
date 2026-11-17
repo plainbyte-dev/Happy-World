@@ -1,17 +1,12 @@
-import Icon from '@/components/ui/AppIcon';
 import type { GuideProfile } from '@/lib/packages';
 
 type OverviewSectionProps = {
   description: string;
-  costIncludes: string[];
-  costExcludes: string[];
   guide?: GuideProfile;
   heroVideo?: string;
 };
 
-export default function OverviewSection({ description, costIncludes, costExcludes, guide, heroVideo }: OverviewSectionProps) {
-  const hasCosts = costIncludes.length > 0 || costExcludes.length > 0;
-
+export default function OverviewSection({ description, guide, heroVideo }: OverviewSectionProps) {
   return (
     <div className="flex flex-col gap-10">
       <div>
@@ -26,37 +21,6 @@ export default function OverviewSection({ description, costIncludes, costExclude
       {heroVideo ? (
         <div className="glass-card rounded-3xl overflow-hidden">
           <video src={heroVideo} controls className="w-full h-auto max-h-[480px] bg-black" />
-        </div>
-      ) : null}
-
-      {hasCosts ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-          {costIncludes.length > 0 ? (
-            <div>
-              <h3 className="font-bold text-sm uppercase tracking-[0.3em] text-muted-foreground mb-5">What&apos;s Included</h3>
-              <ul className="flex flex-col gap-3">
-                {costIncludes.map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-sm text-foreground/80 leading-relaxed">
-                    <Icon name="CheckIcon" size={16} className="text-emerald-500 flex-shrink-0 mt-0.5" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          {costExcludes.length > 0 ? (
-            <div>
-              <h3 className="font-bold text-sm uppercase tracking-[0.3em] text-muted-foreground mb-5">What&apos;s Not Included</h3>
-              <ul className="flex flex-col gap-3">
-                {costExcludes.map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-sm text-foreground/80 leading-relaxed">
-                    <Icon name="XMarkIcon" size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
         </div>
       ) : null}
 

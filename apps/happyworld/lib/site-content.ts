@@ -82,7 +82,10 @@ type CmsSiteContent = Omit<SiteContent, 'tripsMenu'> & { tripsMenu?: TripsCatego
 
 async function fetchCmsContent(): Promise<Partial<CmsSiteContent> | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/site-content`, { next: { revalidate: 300 } });
+    // Short revalidate window — this is admin-edited content (nav, Trips menu
+    // labels, hero slides, etc.), so a save should show up on the live site
+    // within seconds, not the ~5 minutes the old 300s window left admins waiting.
+    const res = await fetch(`${API_BASE}/api/site-content`, { next: { revalidate: 30 } });
     if (!res.ok) return null;
     const json = (await res.json()) as { success: boolean; data?: Partial<CmsSiteContent> };
     if (!json.success || !json.data) return null;

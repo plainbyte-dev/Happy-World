@@ -3,6 +3,7 @@ import { DURATION_VALUES } from '../../../constants/duration';
 import { CATEGORY_VALUES, type PackageInput } from '../../../schemas/package.schema';
 import { inputClass, labelClass } from '../../../lib/formStyles';
 import { useDestinationOptions } from '../../../lib/useDestinationOptions';
+import { useTripsMenuLabels } from '../../../lib/useTripsMenuLabels';
 import { FieldError } from './FieldError';
 import { ImageUploader } from './ImageUploader';
 import { MultiSelectDropdown } from './MultiSelectDropdown';
@@ -22,14 +23,11 @@ const DURATION_LABELS: Record<(typeof DURATION_VALUES)[number], string> = {
   '12+': '12+ days',
 };
 
-const CATEGORY_LABELS: Record<(typeof CATEGORY_VALUES)[number], string> = {
-  'nepal-tours': 'Nepal Tours',
-  trekking: 'Trekking',
-  kailash: 'Kailash',
-};
-
 export function BasicDetailsSection({ control, register, errors }: BasicDetailsSectionProps) {
   const destinationOptions = useDestinationOptions();
+  // Same labels as the public site's Trips menu (Admin → Content → Trips &
+  // destinations), instead of a separate hardcoded copy that could drift from it.
+  const categoryLabels = useTripsMenuLabels();
 
   return (
     <SectionCard title="Basic details">
@@ -65,7 +63,7 @@ export function BasicDetailsSection({ control, register, errors }: BasicDetailsS
           <select id="category" className={inputClass} {...register('category')}>
             {CATEGORY_VALUES.map((value) => (
               <option key={value} value={value}>
-                {CATEGORY_LABELS[value]}
+                {categoryLabels[value]}
               </option>
             ))}
           </select>

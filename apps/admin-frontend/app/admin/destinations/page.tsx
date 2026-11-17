@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useToast } from '../../../components/admin/Toast';
 import { NEPAL_DISTRICTS } from '../../../constants/nepalDistricts';
+import { TIBET_DESTINATIONS } from '../../../constants/tibetDestinations';
 import { api, ApiRequestError } from '../../../lib/api';
 import { inputClass } from '../../../lib/formStyles';
 import type { DestinationRecord } from '../../../lib/types';
@@ -176,8 +177,9 @@ export default function DestinationsPage() {
   }
 
   const existingNames = new Set((destinations ?? []).map((d) => d.name.toLowerCase()));
-  const suggestions = NEPAL_DISTRICTS.filter(
-    (district) => !existingNames.has(district.toLowerCase()) && district.toLowerCase().includes(name.trim().toLowerCase()),
+  const allSuggestedPlaces = [...NEPAL_DISTRICTS, ...TIBET_DESTINATIONS];
+  const suggestions = allSuggestedPlaces.filter(
+    (place) => !existingNames.has(place.toLowerCase()) && place.toLowerCase().includes(name.trim().toLowerCase()),
   );
 
   return (
@@ -200,7 +202,7 @@ export default function DestinationsPage() {
             value={name}
             onChange={(event) => setName(event.target.value)}
             onFocus={() => setShowSuggestions(true)}
-            placeholder="Search Nepal's 77 districts, or type your own"
+            placeholder="Search Nepal districts & Tibet destinations, or type your own"
             maxLength={60}
             autoComplete="off"
           />
@@ -258,21 +260,21 @@ export default function DestinationsPage() {
           <div className="absolute z-10 mt-1 max-h-64 w-full max-w-md overflow-y-auto rounded-md border border-slate-300 bg-white py-1 shadow-lg">
             {suggestions.length === 0 ? (
               <p className="px-3 py-2 text-sm text-slate-400">
-                {name.trim() ? 'No matching district — press "Add destination" to add it as typed.' : 'All 77 districts are already added.'}
+                {name.trim() ? 'No matching place — press "Add destination" to add it as typed.' : 'All suggested places are already added.'}
               </p>
             ) : (
-              suggestions.map((district) => (
+              suggestions.map((place) => (
                 <button
-                  key={district}
+                  key={place}
                   type="button"
                   onClick={() => {
-                    setName(district);
+                    setName(place);
                     setShowSuggestions(false);
-                    void lookupCoordinates(district);
+                    void lookupCoordinates(place);
                   }}
                   className="block w-full px-3 py-1.5 text-left text-sm text-slate-700 hover:bg-slate-50"
                 >
-                  {district}
+                  {place}
                 </button>
               ))
             )}
